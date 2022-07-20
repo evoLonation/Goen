@@ -1,4 +1,4 @@
-package entity
+package entityForGen
 
 type Payment struct {
 	AmountTendered float64

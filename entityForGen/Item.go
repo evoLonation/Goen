@@ -1,4 +1,4 @@
-package entity
+package entityForGen
 
 type Item struct {
 	Barcode     int `gorm:"primaryKey"`

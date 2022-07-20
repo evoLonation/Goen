@@ -1,4 +1,4 @@
-package entity
+package entityForGen
 
 type Store struct {
 	Id       int

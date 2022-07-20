@@ -1,4 +1,4 @@
-package entity
+package entityForGen
 
 type OrderEntry struct {
 	Quantity  int

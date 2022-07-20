@@ -1,4 +1,4 @@
-package entity
+package entityForGen
 
 type ProductCatalog struct {
 	Id   int

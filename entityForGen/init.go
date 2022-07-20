@@ -1,4 +1,4 @@
-package entity
+package entityForGen
 
 import (
 	"gorm.io/gorm"
