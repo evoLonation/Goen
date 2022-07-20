@@ -1,9 +1,10 @@
-package entity
+package entityForGen
 
 import "time"
 
 type Sale struct {
-	Time         time.Time `gorm:"primaryKey"`
+	GoenId       int `gorm:"primaryKey"`
+	Time         time.Time
 	IsComplete   bool
 	Amount       float64
 	IsReadytoPay bool
