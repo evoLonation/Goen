@@ -1,23 +1,34 @@
 package main
 
 import (
-	"Cocome/entity"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"Cocome/api"
 )
 
 func main() {
-	//operation.CurrentSale = nil
-	dsn := "root:2002116yy@tcp(127.0.0.1:3306)/Cocome?charset=utf8mb4&parseTime=True&loc=Local"
-	db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	err := db.AutoMigrate(&entity.CardPayment{}, &entity.CashPayment{},
-		&entity.CashDesk{}, entity.Cashier{},
-		&entity.Item{}, &entity.OrderProduct{}, &entity.OrderEntry{}, &entity.Supplier{},
-		entity.ProductCatalog{}, entity.Sale{}, entity.SalesLineItem{}, entity.Store{}, entity.Supplier{})
+	config, err := LoadConfig(".")
 	if err != nil {
-		print(err)
-		return
+		print("can not load config")
 	}
+
+	api.Start(config.ServerAddress)
+	//dsn := "root:2002116yy@tcp(127.0.0.1:3306)/Cocome?charset=utf8mb4&parseTime=True&loc=Local"
+	//db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	//err := db.AutoMigrate(&entityForGen.CardPayment{}, &entityForGen.CashPayment{},
+	//	&entityForGen.CashDesk{}, entityForGen.Cashier{},
+	//	&entityForGen.Item{}, &entityForGen.OrderProduct{}, &entityForGen.OrderEntry{}, &entityForGen.Supplier{},
+	//	entityForGen.ProductCatalog{}, entityForGen.Sale{}, entityForGen.SalesLineItem{}, entityForGen.Store{}, entityForGen.Supplier{})
+	//if err != nil {
+	//	print(err)
+	//	return
+	//}
+	//operation.CurrentCashDesk = &entity.CashDesk{
+	//	IsOpened: true,
+	//	Id:       1,
+	//}
+
+	//operation.MakeNewSale()
+	//operation.EnterItem(1234, 3)
+
 	//createItems()
 	//operation.MakeNewShoppingCart()
 	//controller.Start()
@@ -35,42 +46,42 @@ func main() {
 }
 
 //func createItems() {
-//	newItem := entity.Item{
+//	newItem := entityForGen.Item{
 //		Barcode:     1234,
 //		Name:        "生菜",
 //		Price:       1.5,
 //		StockNumber: 1000000,
 //	}
 //	entity.Db.Create(&newItem)
-//	newItem = entity.Item{
+//	newItem = entityForGen.Item{
 //		Barcode:     1235,
 //		Name:        "苹果",
 //		Price:       2.5,
 //		StockNumber: 1000000,
 //	}
 //	entity.Db.Create(&newItem)
-//	newItem = entity.Item{
+//	newItem = entityForGen.Item{
 //		Barcode:     1236,
 //		Name:        "生菜",
 //		Price:       1.5,
 //		StockNumber: 1000000,
 //	}
 //	entity.Db.Create(&newItem)
-//	newItem = entity.Item{
+//	newItem = entityForGen.Item{
 //		Barcode:     1237,
 //		Name:        "苹果",
 //		Price:       2.5,
 //		StockNumber: 1000000,
 //	}
 //	entity.Db.Create(&newItem)
-//	newItem = entity.Item{
+//	newItem = entityForGen.Item{
 //		Barcode:     1238,
 //		Name:        "生菜",
 //		Price:       1.5,
 //		StockNumber: 1000000,
 //	}
 //	entity.Db.Create(&newItem)
-//	newItem = entity.Item{
+//	newItem = entityForGen.Item{
 //		Barcode:     1239,
 //		Name:        "苹果",
 //		Price:       2.5,

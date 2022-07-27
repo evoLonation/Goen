@@ -1,17 +1,20 @@
 package entity
 
-import "time"
+import (
+	"database/sql"
+)
 
 type Sale struct {
-	Time         time.Time `gorm:"primaryKey"`
-	IsComplete   bool
-	Amount       float64
-	IsReadytoPay bool
+	GoenId       int             `db:"GoenId"`
+	Time         sql.NullTime    `db:"Time"`
+	IsComplete   bool            `db:"IsComplete"`
+	Amount       sql.NullFloat64 `db:"Amount"`
+	IsReadytoPay bool            `db:"IsReadytoPay"`
 
 	// reference
 	// other entity's * relation
 	StoreId       int
-	CashDeskId    int
+	CashDeskId    sql.NullInt32 `db:"CashDeskId"`
 	CardPaymentId int
 	CashPayment   int
 

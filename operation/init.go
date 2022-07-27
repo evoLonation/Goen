@@ -1,12 +1,17 @@
 package operation
 
 import (
-	"Cocome/entity"
-	"gorm.io/gorm"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
-var db *gorm.DB
+var db *sqlx.DB
 
 func init() {
-	db = entity.Db
+
+	var err error
+	db, err = sqlx.Open("mysql", "root:2002116yy@tcp(127.0.0.1:3306)/Cocome")
+	if err != nil {
+		print(err)
+	}
 }

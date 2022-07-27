@@ -1,9 +1,11 @@
 package entity
 
+import "database/sql"
+
 type CashPayment struct {
 	Payment
 
-	Balance float64
+	Balance sql.NullFloat64
 
 	//
 	SaleId       int

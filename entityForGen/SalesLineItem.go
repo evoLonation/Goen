@@ -1,6 +1,7 @@
 package entityForGen
 
 type SalesLineItem struct {
+	GoenId    int `gorm:"primaryKey"`
 	Quantity  int
 	Subamount float64
 

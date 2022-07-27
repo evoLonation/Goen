@@ -1,15 +1,15 @@
 package entity
 
 type Item struct {
-	Barcode     int `gorm:"primaryKey"`
-	Name        string
-	Price       float64
-	StockNumber int
-	OrderPrice  float64
+	Barcode     int     `db:"barcode"`
+	Name        string  `db:"name"`
+	Price       float64 `db:"price"`
+	StockNumber int     `db:"stock_number"`
+	OrderPrice  float64 `db:"order_price"`
 
 	// other entity's * relation
-	StoreId          int
-	ProductCatalogId int
+	StoreId          int `db:"store_id"`
+	ProductCatalogId int `db:"product_catalog_id"`
 
 	BelongedCatalog *ProductCatalog
 }
