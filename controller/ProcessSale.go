@@ -9,7 +9,7 @@ package controller
 //}
 
 //func AddInCart(c *gin.Context) {
-//	barcode, _ := strconv.Atoi(c.query("id"))
+//	barcode, _ := strconv.Atoi(c.sql("id"))
 //	if operation.AddItem(barcode) != nil {
 //		c.JSON(http.StatusOK, gin.H{
 //			"status":  "error",

@@ -26,7 +26,7 @@ func MakeNewSale() (bool, error) {
 	s.CashDeskId = sql.NullInt32{Int32: int32(CurrentCashDesk.Id), Valid: true}
 	s.IsComplete = false
 	s.IsReadytoPay = false
-	_, err := db.NamedExec(`insert into sales (time, is_complete, amount, is_readyto_pay, cash_desk_id) 
+	_, err := Db.NamedExec(`insert into sales (time, is_complete, amount, is_readyto_pay, cash_desk_id) 
 									values (:Time, :IsComplete, :Amount, :IsReadytoPay, :CashDeskId)`, &s)
 	if err != nil {
 		print(err.Error())
@@ -38,7 +38,7 @@ func MakeNewSale() (bool, error) {
 func EnterItem(barcode int, quantity int) (bool, error) {
 	// definition
 	item := &entity.Item{}
-	err := db.Get(item, "select * from items where barcode=?", barcode)
+	err := Db.Get(item, "select * from items where barcode=?", barcode)
 	if err != nil {
 		print(err.Error())
 		return false, err
@@ -61,13 +61,13 @@ func EnterItem(barcode int, quantity int) (bool, error) {
 	sli.BelongedItem = item
 	sli.ItemId = item.Barcode
 	item.StockNumber -= quantity
-	_, err = db.Exec(`update items set stock_number = ? where barcode = ?`, item.StockNumber, item.Barcode)
+	_, err = Db.Exec(`update items set stock_number = ? where barcode = ?`, item.StockNumber, item.Barcode)
 	if err != nil {
 		print(err.Error())
 		return false, err
 	}
 	sli.Subamount = item.Price * float64(quantity)
-	_, err = db.NamedExec(`insert into sales_line_items (quantity, subamount, sale_id, item_id) 
+	_, err = Db.NamedExec(`insert into sales_line_items (quantity, subamount, sale_id, item_id) 
 									values (:quantity, :subamount, :sale_id, :item_id)`, &sli)
 	if err != nil {
 		print(err.Error())

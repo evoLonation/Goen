@@ -5,7 +5,7 @@ package operation
 //
 //func MakeNewShoppingCart() int {
 //	newShoppingCart := entity.Cart{}
-//	db.Create(&newShoppingCart)
+//	Db.Create(&newShoppingCart)
 //	println("create new Shopping Cart, id is " + strconv.Itoa(newShoppingCart.Id))
 //	CurrentCart = &newShoppingCart
 //	return newShoppingCart.Id
@@ -14,7 +14,7 @@ package operation
 //// AddItem 扫码，或者输入条形码的值
 //// 这个过程中会更新购物车、商品
 //func AddItem(barcode int) (err error) {
-//	tx := db.Begin()
+//	tx := Db.Begin()
 //	defer func() {
 //		if err != nil {
 //			tx.Rollback()
@@ -55,7 +55,7 @@ package operation
 //var cartMu sync.Mutex
 //
 //func AddItemsMul(barcodes []int) (err error) {
-//	tx := db.Begin()
+//	tx := Db.Begin()
 //	defer func() {
 //		if err != nil {
 //			tx.Rollback()
@@ -69,7 +69,7 @@ package operation
 //	}
 //	ch := make(chan int, len(barcodes))
 //	for i := 0; i < len(barcodes); i++ {
-//		go addOneItem(db, barcodes[i], ch)
+//		go addOneItem(Db, barcodes[i], ch)
 //	}
 //	for i := 0; i < len(barcodes); i++ {
 //		<-ch
@@ -79,9 +79,9 @@ package operation
 //	}
 //	return nil
 //}
-//func addOneItem(db *gorm.DB, barcode int, ch chan int) (err error) {
+//func addOneItem(Db *gorm.DB, barcode int, ch chan int) (err error) {
 //	println("我开始了")
-//	tx := db.Begin()
+//	tx := Db.Begin()
 //	defer func() {
 //		if err != nil {
 //			tx.Rollback()
@@ -118,7 +118,7 @@ package operation
 //}
 //
 //func AddItems(barcodes []int) (err error) {
-//	tx := db.Begin()
+//	tx := Db.Begin()
 //	defer func() {
 //		if err != nil {
 //			tx.Rollback()
@@ -170,7 +170,7 @@ package operation
 //	itemInShopping.Item.StockNumber--
 //	itemInShopping.Quantity++
 //	itemInShopping.SubAmount += itemInShopping.Item.Price
-//	if db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&itemInShopping).Error != nil {
+//	if Db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&itemInShopping).Error != nil {
 //		return errors.New("增加数量失败！")
 //	}
 //	return nil
@@ -178,7 +178,7 @@ package operation
 
 //func EndSale() float64 {
 //	var salesLineItems []entity.SalesLineItem
-//	db.Model(&currentSale).Association("SalesLineItems").Find(&salesLineItems)
+//	Db.Model(&currentSale).Association("SalesLineItems").Find(&salesLineItems)
 //	for i := 0; i < len(salesLineItems); i++ {
 //		currentSale.Amount += salesLineItems[i].SubAmount
 //	}
@@ -196,6 +196,6 @@ package operation
 //	}
 //	currentSale.Payment = payment
 //	currentSale.IsComplete = true
-//	db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&currentSale)
+//	Db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&currentSale)
 //	return true
 //}
