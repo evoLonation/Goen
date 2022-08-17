@@ -13,8 +13,11 @@ const (
 )
 
 type entity struct {
-	entityType EntityType
-	Manager    *any
+	entityType      EntityType
+	setCandidate    [10]string
+	setCandidateLen int
+	getTableName    func() string
+	getIdName       func() string
 }
 
 func (p *entity) SetEntityType(entityType EntityType) {
@@ -22,6 +25,12 @@ func (p *entity) SetEntityType(entityType EntityType) {
 }
 func (p *entity) GetEntityType() EntityType {
 	return p.entityType
+}
+func (p *entity) setTableNameFunc(foo func() string) {
+	p.getTableName = foo
+}
+func (p *entity) setIdNameFunc(foo func() string) {
+	p.getIdName = foo
 }
 
 type entityType interface {
@@ -32,24 +41,26 @@ type Manager[T entityType, PT interface {
 	*T
 	SetEntityType(entityType EntityType)
 	GetEntityType() EntityType
+	setTableNameFunc(func() string)
+	setIdNameFunc(func() string)
+	getInsertQuery() string
+	getUpdateQuery() string
+	clearSetField()
 }] struct {
-	currentEntity   PT
-	setCandidate    [10]string
-	setCandidateLen int
-	tableName       string
-	idName          string
+	tableName string
+	idName    string
 }
 
-func (p *Manager[T, PT]) addSetField(str string) {
+func (p *entity) addSetField(str string) {
 	p.setCandidate[p.setCandidateLen] = str
 	p.setCandidateLen++
 }
-func (p *Manager[T, PT]) clearSetField() {
+func (p *entity) clearSetField() {
 	p.setCandidateLen = 0
 }
 
-func (p *Manager[T, PT]) getUpdateQuery() string {
-	query := fmt.Sprintf("insert into %s(", p.tableName)
+func (p *entity) getInsertQuery() string {
+	query := fmt.Sprintf("insert into %s(", p.getTableName())
 	for i := 0; i < p.setCandidateLen-1; i++ {
 		query += fmt.Sprintf("%s,", p.setCandidate[i])
 	}
@@ -62,59 +73,58 @@ func (p *Manager[T, PT]) getUpdateQuery() string {
 	return query
 }
 
-func (p *Manager[T, PT]) getInsertQuery() string {
-	query := fmt.Sprintf("update %s p.set ", p.tableName)
+func (p *entity) getUpdateQuery() string {
+	query := fmt.Sprintf("update %s set ", p.getTableName())
 	for i := 0; i < p.setCandidateLen-1; i++ {
 		query += p.setCandidate[i] + "= :" + p.setCandidate[i] + ", "
 	}
 	query += p.setCandidate[p.setCandidateLen-1] + "= :" + p.setCandidate[p.setCandidateLen-1]
-	query += fmt.Sprintf(" where %s = :%s", p.idName, p.idName)
+	query += fmt.Sprintf(" where %s = :%s", p.getIdName(), p.getIdName())
 	print(query)
 	return query
 }
 
 func (p *Manager[T, PT]) Find(id any) (PT, error) {
 	e := PT(new(T))
-	err := operation.Db.Get(e, fmt.Sprintf("select * from %s where %s = $1", p.tableName, p.idName), id)
+	query := fmt.Sprintf("select * from %s where %s=?", p.tableName, p.idName)
+	err := operation.Db.Get(e, query, id)
 	if err != nil {
 		return nil, err
 	}
 	e.SetEntityType(Founded)
-	p.currentEntity = e
+	e.setIdNameFunc(func() string { return p.idName })
+	e.setTableNameFunc(func() string { return p.tableName })
 	return e, nil
 }
 
 func (p *Manager[T, PT]) Create() PT {
 	e := PT(new(T))
 	e.SetEntityType(Created)
-	p.currentEntity = e
+	e.setIdNameFunc(func() string { return p.idName })
+	e.setTableNameFunc(func() string { return p.tableName })
 	return e
 }
 
-func (p *Manager[T, PT]) Update() error {
-	_, err := operation.Db.NamedExec(p.getUpdateQuery(), p.currentEntity)
+func (p *Manager[T, PT]) Update(e PT) error {
+	_, err := operation.Db.NamedExec(e.getUpdateQuery(), e)
 	if err != nil {
 		return err
 	}
+	e.clearSetField()
 	return nil
 }
-func (p *Manager[T, PT]) Insert() error {
-	_, err := operation.Db.NamedExec(p.getInsertQuery(), p.currentEntity)
+func (p *Manager[T, PT]) Insert(e PT) error {
+	_, err := operation.Db.NamedExec(e.getInsertQuery(), e)
 	if err != nil {
 		return err
 	}
+	e.clearSetField()
 	return nil
 }
-func (p *Manager[T, PT]) Save() error {
-	if p.currentEntity.GetEntityType() == Founded {
-		return p.Update()
+func (p *Manager[T, PT]) Save(e PT) error {
+	if e.GetEntityType() == Founded {
+		return p.Update(e)
 	} else {
-		return p.Insert()
+		return p.Insert(e)
 	}
-}
-
-func Test() {
-	man := &Manager[Store, *Store]{}
-	man.tableName = "1"
-	//foo[entity]()
 }
