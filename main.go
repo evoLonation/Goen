@@ -15,7 +15,7 @@ func main() {
 	//	log.Fatal(err)
 	//}
 
-	//item, err := entityManager.ItemManager.Find(1)
+	//item, err := entityManager.ItemManager.Get(1)
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
@@ -30,7 +30,8 @@ func main() {
 	item3.SetBarcode(129)
 	item2.SetBelongedItem(item3)
 	item3.AddContainedItem(item2)
-
+	entityManager.ItemManager.AddInAllInstance(item2)
+	entityManager.ItemManager.AddInAllInstance(item3)
 	//item2 := entityManager.ItemManager.New()
 	//item2.SetName("giaoge")
 	//err = entityManager.ItemManager.Save(item)
@@ -40,8 +41,28 @@ func main() {
 	if err := entityManager.Manager.Save(); err != nil {
 		log.Fatal(err)
 	}
+	item, err := entityManager.ItemManager.GetBy("barcode", 128)
+	if err != nil {
+		log.Fatal(err)
+	}
+	print(item)
+	if err := entityManager.Manager.Save(); err != nil {
+		log.Fatal(err)
+	}
 
 	items, _ := item3.GetContainedItem()
+	entityManager.ItemManager.RemoveFromAllInstance(items[0])
 
-	print(items)
+	if err := entityManager.Manager.Save(); err != nil {
+		log.Fatal(err)
+	}
+	item, err = entityManager.ItemManager.GetBy("barcode", 128)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//
+	//if err := entityManager.Manager.Save(); err != nil {
+	//	log.Fatal(err)
+	//}
+	//print(items)
 }

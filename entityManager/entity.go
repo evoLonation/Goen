@@ -21,11 +21,13 @@ type Entity struct {
 	associationCandidate []fieldInfo
 	joinTableInfos       []joinTableInfo
 
-	GoenId int `db:"goen_id"`
+	GoenId            int  `db:"goen_id"`
+	GoenInAllInstance bool `db:"goen_in_all_instance"`
 }
 
 // 填充除了数据库字段外的值
 func (p *Entity) initEntity(entityType EntityType, tableName string, goenId int) {
+	//如果goenId不为0，证明这是新创建的Entity，不是sqlx生成的
 	if goenId != 0 {
 		p.GoenId = goenId
 	}
@@ -35,6 +37,10 @@ func (p *Entity) initEntity(entityType EntityType, tableName string, goenId int)
 	if entityType == Created {
 		p.tryWaitSave(false)
 	}
+}
+func (p *Entity) setGoenInAllInstance(goenInAllInstance bool) {
+	p.GoenInAllInstance = goenInAllInstance
+	p.addBasicField("goen_in_all_instance", goenInAllInstance)
 }
 
 func (p *Entity) tryWaitSave(isAssociation bool) {

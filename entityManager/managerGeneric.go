@@ -11,6 +11,7 @@ type entityType interface {
 type entityInterface[T any] interface {
 	*T
 	initEntity(EntityType, string, int)
+	setGoenInAllInstance(bool)
 }
 
 type ManagerGeneric[T entityType, PT entityInterface[T]] struct {
@@ -31,9 +32,9 @@ func (p *ManagerGeneric[T, PT]) generateGoenId() int {
 	return p.maxGoenId
 }
 
-func (p *ManagerGeneric[T, PT]) Find(goenId int) (PT, error) {
+func (p *ManagerGeneric[T, PT]) Get(goenId int) (PT, error) {
 	e := PT(new(T))
-	query := fmt.Sprintf("select * from %s where goen_id=?", p.tableName)
+	query := fmt.Sprintf("select * from %s where goen_id=? and goen_in_all_instance = true", p.tableName)
 	err := Db.Get(e, query, goenId)
 	if err != nil {
 		return nil, err
@@ -45,7 +46,7 @@ func (p *ManagerGeneric[T, PT]) Find(goenId int) (PT, error) {
 
 func (p *ManagerGeneric[T, PT]) GetBy(member string, value any) (PT, error) {
 	e := PT(new(T))
-	query := fmt.Sprintf("select * from %s where %s=?", p.tableName, member)
+	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Get(e, query, value)
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func (p *ManagerGeneric[T, PT]) GetBy(member string, value any) (PT, error) {
 
 func (p *ManagerGeneric[T, PT]) FindBy(member string, value any) ([]PT, error) {
 	var earr []PT
-	query := fmt.Sprintf("select * from %s where %s=?", p.tableName, member)
+	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Select(&earr, query, value)
 	if err != nil {
 		return nil, err
@@ -72,6 +73,13 @@ func (p *ManagerGeneric[T, PT]) New() PT {
 	e := PT(new(T))
 	e.initEntity(Created, p.tableName, p.generateGoenId())
 	return e
+}
+func (p *ManagerGeneric[T, PT]) AddInAllInstance(e PT) {
+	e.setGoenInAllInstance(true)
+}
+
+func (p *ManagerGeneric[T, PT]) RemoveFromAllInstance(e PT) {
+	e.setGoenInAllInstance(false)
 }
 
 //func (p *ManagerGeneric[T, PT]) Update(e PT) error {
