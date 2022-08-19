@@ -80,7 +80,7 @@ create table sales_line_item
     goen_id   int auto_increment primary key,
     quantity  int,
     subamount double,
-    item_id   int unique,
+    item_id   int ,
     sale_id   int ,
     foreign key (item_id) references item (barcode),
     foreign key (sale_id) references sale (goen_id)

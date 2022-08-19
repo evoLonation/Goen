@@ -1,47 +1,59 @@
 package entityManager
 
-import entity2 "Cocome/entity"
-
 type Item struct {
-	entity
-	Barcode     int      `db:"barcode"`
+	Entity
+	Barcode     *int     `db:"barcode"`
 	Name        *string  `db:"name"`
 	Price       *float64 `db:"price"`
 	StockNumber *int     `db:"stock_number"`
 	OrderPrice  *float64 `db:"order_price"`
 
-	// other entity's * relation
-	StoreId          *int `db:"store_id"`
-	ProductCatalogId *int `db:"product_catalog_id"`
-}
-
-var ItemManager = &Manager[Item, *Item]{
-	tableName: "item",
-	idName:    "barcode",
+	BelongedItemGoenId *int `db:"belonged_item_goen_id"`
+	ContainedItem      []int
 }
 
 func (p *Item) SetName(name string) {
 	p.Name = &name
-	p.addSetField("name")
+	p.addBasicField("name", name)
 }
 func (p *Item) SetBarcode(barcode int) {
-	p.Barcode = barcode
-	p.addSetField("barcode")
+	p.Barcode = &barcode
+	p.addBasicField("barcode", barcode)
 }
 func (p *Item) SetPrice(price float64) {
 	p.Price = &price
-	p.addSetField("price")
+	p.addBasicField("price", price)
 }
 func (p *Item) SetOrderPrice(price float64) {
 	p.OrderPrice = &price
-	p.addSetField("order_price")
+	p.addBasicField("order_price", price)
 }
 
 func (p *Item) SetStockNumber(stockNumber string) {
 	p.Name = &stockNumber
-	p.addSetField("stock_number")
+	p.addBasicField("stock_number", stockNumber)
 }
 
-func (p *Item) AddContainedSalesLine(salesLine *entity2.SalesLineItem) {
-	// 让 salesLine的候选item键赋值为本对象
+func (p *Item) AddContainedItem(item *Item) {
+	p.addJoinTableInsert(true, "contained_item", "item", item.GoenId)
+}
+func (p *Item) SetBelongedItem(item *Item) {
+	p.BelongedItemGoenId = &item.GoenId
+	p.addAssociationField("belonged_item_goen_id", item.GoenId)
+}
+
+func (p *Item) GetContainedItem() ([]*Item, error) {
+	var items []*Item
+	query := p.getSelectJoinTableQuery("contained_item", "item")
+	if err := Db.Select(&items, query, p.GoenId); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+func (p *Item) GetBelongedItem() (*Item, error) {
+	if p.BelongedItemGoenId == nil {
+		return nil, nil
+	} else {
+		return ItemManager.Find(*p.BelongedItemGoenId)
+	}
 }

@@ -6,22 +6,42 @@ import (
 )
 
 func main() {
-	item, err := entityManager.ItemManager.Find(1234)
-	if err != nil {
-		log.Fatal(err)
-	}
-	item.SetPrice(121233.0)
-	item.SetName("giaoge23454744536345")
-	item2 := entityManager.ItemManager.Create()
-	item2.SetBarcode(12123345)
-	item2.SetName("giaoge")
-	err = entityManager.ItemManager.Save(item)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := entityManager.ItemManager.Save(item2); err != nil {
+	//item := entityManager.ItemManager.New()
+	//item.SetBarcode(123)
+	//item.SetName("giao")
+	//item.SetPrice(12.3)
+	//err := entityManager.Manager.Save()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	//item, err := entityManager.ItemManager.Find(1)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	//item, err := entityManager.ItemManager.GetBy("barcode", 123)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	item2 := entityManager.ItemManager.New()
+	item3 := entityManager.ItemManager.New()
+	item2.SetBarcode(128)
+	item3.SetBarcode(129)
+	item2.SetBelongedItem(item3)
+	item3.AddContainedItem(item2)
+
+	//item2 := entityManager.ItemManager.New()
+	//item2.SetName("giaoge")
+	//err = entityManager.ItemManager.Save(item)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	if err := entityManager.Manager.Save(); err != nil {
 		log.Fatal(err)
 	}
 
-	print(item)
+	items, _ := item3.GetContainedItem()
+
+	print(items)
 }
