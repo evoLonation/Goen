@@ -74,11 +74,6 @@ func (p *Entity) setGoenInAllInstance(goenInAllInstance bool) {
 	p.AddBasicFieldChange("goen_in_all_instance")
 }
 
-// for managerGeneric
-func (p *Entity) GetEntityMethods() entityMethods {
-	return p
-}
-
 func (p *Entity) AddBasicFieldChange(field string) {
 	p.basicFieldChange = append(p.basicFieldChange, field)
 }

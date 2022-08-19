@@ -18,6 +18,7 @@ create table item_contained_item
 create table payment
 (
     goen_id         int primary key,
+    goen_in_all_instance  bool         not null default (false),
     goen_type       int   not null check ( goen_type between 0 and 2),
     amount_tendered float not null default (0)
 );

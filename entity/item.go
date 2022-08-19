@@ -58,15 +58,15 @@ func (p *Item) GetBelongedItem() (*Item, error) {
 	}
 }
 
-func (p *Item) SetBelongedPayment(payment *Payment) {
-	p.BelongedPaymentGoenId = &payment.GoenId
-	p.AddAssFieldChange("belonged_payment_goen_id")
-}
-
-func (p *Item) GetBelongedPayment() (*Payment, error) {
-	if p.BelongedItemGoenId == nil {
-		return nil, nil
-	} else {
-		return PaymentManager.Get(*p.BelongedItemGoenId)
-	}
-}
+//func (p *Item) SetBelongedPayment(payment *Payment) {
+//	p.BelongedPaymentGoenId = &payment.GoenId
+//	p.AddAssFieldChange("belonged_payment_goen_id")
+//}
+//
+//func (p *Item) GetBelongedPayment() (*Payment, error) {
+//	if p.BelongedItemGoenId == nil {
+//		return nil, nil
+//	} else {
+//		return PaymentManager.Get(*p.BelongedItemGoenId)
+//	}
+//}
