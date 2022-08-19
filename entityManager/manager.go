@@ -5,8 +5,7 @@ import (
 	"fmt"
 )
 
-type entityForManager[T any] interface {
-	*T
+type entityForManager interface {
 	afterNew(int)
 	afterFind()
 	afterBasicSave()
@@ -19,12 +18,17 @@ type entityForManager[T any] interface {
 	getGoenId() int
 }
 
-type Manager[T any, PT entityForManager[T]] struct {
+type managerTypeParam[T any] interface {
+	*T
+	entityForManager
+}
+
+type Manager[T any, PT managerTypeParam[T]] struct {
 	tableName string
 	maxGoenId int
 }
 
-func NewManager[T any, PT entityForManager[T]](tableName string) *Manager[T, PT] {
+func NewManager[T any, PT managerTypeParam[T]](tableName string) *Manager[T, PT] {
 	manager := &Manager[T, PT]{}
 	manager.tableName = tableName
 	query := fmt.Sprintf("select goen_id from %s order by goen_id DESC limit 1", manager.tableName)
