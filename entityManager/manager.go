@@ -24,40 +24,40 @@ type entityInterface[T any] interface {
 	GetEntityMethods() entityMethods
 }
 
-type ManagerGeneric[T any, PT entityInterface[T]] struct {
+type Manager[T any, PT entityInterface[T]] struct {
 	tableName string
 	maxGoenId int
 }
 
-func NewManager[T any, PT entityInterface[T]](tableName string) *ManagerGeneric[T, PT] {
-	manager := &ManagerGeneric[T, PT]{}
+func NewManager[T any, PT entityInterface[T]](tableName string) *Manager[T, PT] {
+	manager := &Manager[T, PT]{}
 	manager.tableName = tableName
 	query := fmt.Sprintf("select goen_id from %s order by goen_id DESC limit 1", manager.tableName)
 	Db.Get(&manager.maxGoenId, query)
 	return manager
 }
 
-func (p *ManagerGeneric[T, PT]) generateGoenId() int {
+func (p *Manager[T, PT]) generateGoenId() int {
 	p.maxGoenId = p.maxGoenId + 1
 	return p.maxGoenId
 }
-func (p *ManagerGeneric[T, PT]) addInQueue(e PT) {
-	Manager.addInBasicSaveQueue(func() error {
+func (p *Manager[T, PT]) addInQueue(e PT) {
+	Saver.addInBasicSaveQueue(func() error {
 		return p.saveBasic(e)
 	})
-	Manager.addInAssSaveQueue(func() error {
+	Saver.addInAssSaveQueue(func() error {
 		return p.updateAss(e)
 	})
 }
 
-func (p *ManagerGeneric[T, PT]) New() PT {
+func (p *Manager[T, PT]) New() PT {
 	e := PT(new(T))
 	e.GetEntityMethods().afterNew(p.generateGoenId())
 	p.addInQueue(e)
 	return e
 }
 
-func (p *ManagerGeneric[T, PT]) Get(goenId int) (PT, error) {
+func (p *Manager[T, PT]) Get(goenId int) (PT, error) {
 	e := PT(new(T))
 	query := fmt.Sprintf("select * from %s where goen_id=? and goen_in_all_instance = true", p.tableName)
 	err := Db.Get(e, query, goenId)
@@ -69,7 +69,7 @@ func (p *ManagerGeneric[T, PT]) Get(goenId int) (PT, error) {
 	return e, nil
 }
 
-func (p *ManagerGeneric[T, PT]) GetBy(member string, value any) (PT, error) {
+func (p *Manager[T, PT]) GetBy(member string, value any) (PT, error) {
 	e := PT(new(T))
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Get(e, query, value)
@@ -81,7 +81,7 @@ func (p *ManagerGeneric[T, PT]) GetBy(member string, value any) (PT, error) {
 	return e, nil
 }
 
-func (p *ManagerGeneric[T, PT]) FindBy(member string, value any) ([]PT, error) {
+func (p *Manager[T, PT]) FindBy(member string, value any) ([]PT, error) {
 	var entityArr []PT
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Select(&entityArr, query, value)
@@ -94,7 +94,7 @@ func (p *ManagerGeneric[T, PT]) FindBy(member string, value any) ([]PT, error) {
 	}
 	return entityArr, nil
 }
-func (p *ManagerGeneric[T, PT]) FindFromMultiAssTable(tableName string, ownerId int) ([]PT, error) {
+func (p *Manager[T, PT]) FindFromMultiAssTable(tableName string, ownerId int) ([]PT, error) {
 	var entityArr []PT
 	query := fmt.Sprintf("select tmp.* from %s as ass, %s as tmp where ass.owner_goen_id = ? and ass.possession_goen_id = tmp.goen_id ",
 		tableName, p.tableName)
@@ -109,7 +109,7 @@ func (p *ManagerGeneric[T, PT]) FindFromMultiAssTable(tableName string, ownerId 
 }
 
 // the length of changedField must > 0
-func (p *ManagerGeneric[T, PT]) getUpdateQuery(changedField []string) string {
+func (p *Manager[T, PT]) getUpdateQuery(changedField []string) string {
 	query := fmt.Sprintf("update %s set ", p.tableName)
 	for _, field := range changedField[0 : len(changedField)-1] {
 		query += fmt.Sprintf("%s= :%s,", field, field)
@@ -122,7 +122,7 @@ func (p *ManagerGeneric[T, PT]) getUpdateQuery(changedField []string) string {
 }
 
 // the length of changedField must > 0
-func (p *ManagerGeneric[T, PT]) getInsertQuery(changedField []string) string {
+func (p *Manager[T, PT]) getInsertQuery(changedField []string) string {
 	lastField := changedField[len(changedField)-1]
 	query := fmt.Sprintf("insert into %s( ", p.tableName)
 	for _, field := range changedField[0 : len(changedField)-1] {
@@ -137,16 +137,16 @@ func (p *ManagerGeneric[T, PT]) getInsertQuery(changedField []string) string {
 	return query
 }
 
-func (p *ManagerGeneric[T, PT]) getMultiAssInsertQuery(tableName string) string {
+func (p *Manager[T, PT]) getMultiAssInsertQuery(tableName string) string {
 	query := fmt.Sprintf("insert into %s (owner_goen_id, possession_goen_id) values (?, ?)", tableName)
 	return query
 }
-func (p *ManagerGeneric[T, PT]) getMultiAssDeleteQuery(tableName string) string {
+func (p *Manager[T, PT]) getMultiAssDeleteQuery(tableName string) string {
 	query := fmt.Sprintf("delete from %s where owner_goen_id=? and possession_goen_id=?", tableName)
 	return query
 }
 
-func (p *ManagerGeneric[T, PT]) saveBasic(e PT) error {
+func (p *Manager[T, PT]) saveBasic(e PT) error {
 	methods := e.GetEntityMethods()
 	if len(methods.getBasicFieldChange()) != 0 {
 		if methods.getEntityStatus() == Created {
@@ -164,7 +164,7 @@ func (p *ManagerGeneric[T, PT]) saveBasic(e PT) error {
 }
 
 // updateAss e 's entityStatus must be Existence
-func (p *ManagerGeneric[T, PT]) updateAss(e PT) error {
+func (p *Manager[T, PT]) updateAss(e PT) error {
 	methods := e.GetEntityMethods()
 
 	if methods.getEntityStatus() == Created {
@@ -190,10 +190,10 @@ func (p *ManagerGeneric[T, PT]) updateAss(e PT) error {
 	return nil
 }
 
-func (p *ManagerGeneric[T, PT]) AddInAllInstance(e PT) {
+func (p *Manager[T, PT]) AddInAllInstance(e PT) {
 	e.GetEntityMethods().setGoenInAllInstance(true)
 }
 
-func (p *ManagerGeneric[T, PT]) RemoveFromAllInstance(e PT) {
+func (p *Manager[T, PT]) RemoveFromAllInstance(e PT) {
 	e.GetEntityMethods().setGoenInAllInstance(false)
 }

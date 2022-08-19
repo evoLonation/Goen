@@ -1,13 +1,13 @@
 package entityManager
 
-type EntityManager struct {
+type saver struct {
 	waitBasicSave       []func() error
 	waitAssociationSave []func() error
 }
 
-var Manager EntityManager
+var Saver saver
 
-func (p *EntityManager) Save() error {
+func (p *saver) Save() error {
 	for _, foo := range p.waitBasicSave {
 		if err := foo(); err != nil {
 			return err
@@ -22,9 +22,9 @@ func (p *EntityManager) Save() error {
 	p.waitAssociationSave = nil
 	return nil
 }
-func (p *EntityManager) addInBasicSaveQueue(foo func() error) {
+func (p *saver) addInBasicSaveQueue(foo func() error) {
 	p.waitBasicSave = append(p.waitBasicSave, foo)
 }
-func (p *EntityManager) addInAssSaveQueue(foo func() error) {
+func (p *saver) addInAssSaveQueue(foo func() error) {
 	p.waitAssociationSave = append(p.waitAssociationSave, foo)
 }

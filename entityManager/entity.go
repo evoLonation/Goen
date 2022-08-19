@@ -54,7 +54,7 @@ func (p *Entity) getGoenId() int {
 func (p *Entity) afterNew(goenId int) {
 	p.EntityStatus = Created
 	p.GoenId = goenId
-	p.BasicFieldChange("goen_id")
+	p.AddBasicFieldChange("goen_id")
 }
 func (p *Entity) afterFind() {
 	p.EntityStatus = Existent
@@ -71,7 +71,7 @@ func (p *Entity) afterAssUpdate() {
 
 func (p *Entity) setGoenInAllInstance(goenInAllInstance bool) {
 	p.GoenInAllInstance = goenInAllInstance
-	p.BasicFieldChange("goen_in_all_instance")
+	p.AddBasicFieldChange("goen_in_all_instance")
 }
 
 // for managerGeneric
@@ -79,15 +79,15 @@ func (p *Entity) GetEntityMethods() entityMethods {
 	return p
 }
 
-func (p *Entity) BasicFieldChange(field string) {
+func (p *Entity) AddBasicFieldChange(field string) {
 	p.basicFieldChange = append(p.basicFieldChange, field)
 }
 
-func (p *Entity) AssFieldChange(field string) {
+func (p *Entity) AddAssFieldChange(field string) {
 	p.assFieldChange = append(p.assFieldChange, field)
 }
 
-func (p *Entity) MultiAssChange(typ MultiAssChangeType, tableName string, targetId int) {
+func (p *Entity) AddMultiAssChange(typ MultiAssChangeType, tableName string, targetId int) {
 	p.multiAssChange = append(p.multiAssChange, multiAssInfo{
 		typ:       typ,
 		targetId:  targetId,
