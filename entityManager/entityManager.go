@@ -22,11 +22,9 @@ func (p *EntityManager) Save() error {
 	p.waitAssociationSave = nil
 	return nil
 }
-
-func (p *EntityManager) addWaitSave(isAssociation bool, foo func() error) {
-	if isAssociation {
-		p.waitAssociationSave = append(p.waitAssociationSave, foo)
-	} else {
-		p.waitBasicSave = append(p.waitBasicSave, foo)
-	}
+func (p *EntityManager) addInBasicSaveQueue(foo func() error) {
+	p.waitBasicSave = append(p.waitBasicSave, foo)
+}
+func (p *EntityManager) addInAssSaveQueue(foo func() error) {
+	p.waitAssociationSave = append(p.waitAssociationSave, foo)
 }

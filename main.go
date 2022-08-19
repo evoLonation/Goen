@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Cocome/entity"
 	"Cocome/entityManager"
 	"log"
 )
@@ -24,14 +25,14 @@ func main() {
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
-	item2 := entityManager.ItemManager.New()
-	item3 := entityManager.ItemManager.New()
+	item2 := entity.ItemManager.New()
+	item3 := entity.ItemManager.New()
 	item2.SetBarcode(128)
 	item3.SetBarcode(129)
 	item2.SetBelongedItem(item3)
 	item3.AddContainedItem(item2)
-	entityManager.ItemManager.AddInAllInstance(item2)
-	entityManager.ItemManager.AddInAllInstance(item3)
+	entity.ItemManager.AddInAllInstance(item2)
+	entity.ItemManager.AddInAllInstance(item3)
 	//item2 := entityManager.ItemManager.New()
 	//item2.SetName("giaoge")
 	//err = entityManager.ItemManager.Save(item)
@@ -41,7 +42,7 @@ func main() {
 	if err := entityManager.Manager.Save(); err != nil {
 		log.Fatal(err)
 	}
-	item, err := entityManager.ItemManager.GetBy("barcode", 128)
+	item, err := entity.ItemManager.GetBy("barcode", 128)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,12 +52,12 @@ func main() {
 	}
 
 	items, _ := item3.GetContainedItem()
-	entityManager.ItemManager.RemoveFromAllInstance(items[0])
+	entity.ItemManager.RemoveFromAllInstance(items[0])
 
 	if err := entityManager.Manager.Save(); err != nil {
 		log.Fatal(err)
 	}
-	item, err = entityManager.ItemManager.GetBy("barcode", 128)
+	item, err = entity.ItemManager.GetBy("barcode", 128)
 	if err != nil {
 		log.Fatal(err)
 	}

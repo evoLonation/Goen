@@ -1,7 +1,11 @@
-package entityManager
+package entity
+
+import "Cocome/entityManager"
+
+var ItemManager *entityManager.ManagerGeneric[Item, *Item] = entityManager.NewManager[Item, *Item]("item")
 
 type Item struct {
-	Entity
+	entityManager.Entity
 	Barcode     int     `db:"barcode"`
 	Name        string  `db:"name"`
 	Price       float64 `db:"price"`
@@ -13,45 +17,38 @@ type Item struct {
 
 func (p *Item) SetName(name string) {
 	p.Name = name
-	p.addBasicField("name", name)
+	p.BasicFieldChange("name")
 }
 func (p *Item) SetBarcode(barcode int) {
 	p.Barcode = barcode
-	p.addBasicField("barcode", barcode)
+	p.BasicFieldChange("barcode")
 }
 func (p *Item) SetPrice(price float64) {
 	p.Price = price
-	p.addBasicField("price", price)
+	p.BasicFieldChange("price")
 }
 func (p *Item) SetOrderPrice(price float64) {
 	p.OrderPrice = price
-	p.addBasicField("order_price", price)
+	p.BasicFieldChange("order_price")
 }
 
 func (p *Item) SetStockNumber(stockNumber string) {
 	p.Name = stockNumber
-	p.addBasicField("stock_number", stockNumber)
+	p.BasicFieldChange("stock_number")
 }
 
 func (p *Item) AddContainedItem(item *Item) {
-	p.addJoinTableInsert(true, "contained_item", "item", item.GoenId)
+	p.MultiAssChange(entityManager.Include, "item_contained_item", item.GoenId)
 }
 func (p *Item) SetBelongedItem(item *Item) {
 	p.BelongedItemGoenId = &item.GoenId
-	p.addAssociationField("belonged_item_goen_id", item.GoenId)
+	p.AssFieldChange("belonged_item_goen_id")
 }
 
 func (p *Item) GetContainedItem() ([]*Item, error) {
-	var items []*Item
-	query := p.getSelectJoinTableQuery("contained_item", "item")
-	if err := Db.Select(&items, query, p.GoenId); err != nil {
-		return nil, err
-	}
-	for _, e := range items {
-		e.initEntity(Founded, p.tableName, 0)
-	}
-	return items, nil
+	return ItemManager.FindFromMultiAssTable("item_contained_item", p.GoenId)
 }
+
 func (p *Item) GetBelongedItem() (*Item, error) {
 	if p.BelongedItemGoenId == nil {
 		return nil, nil
