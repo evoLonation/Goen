@@ -2,7 +2,8 @@ package entity
 
 import "Cocome/entityManager"
 
-var ItemManager *entityManager.Manager[Item, *Item] = entityManager.NewManager[Item, *Item]("item")
+var itemManager entityManager.ManagerForEntity[*Item] = entityManager.NewManager[Item]("item")
+var ItemManager entityManager.ManagerForOther[*Item] = itemManager.(*entityManager.Manager[Item, *Item])
 
 type Item struct {
 	entityManager.Entity
@@ -47,14 +48,14 @@ func (p *Item) SetBelongedItem(item *Item) {
 }
 
 func (p *Item) GetContainedItem() ([]*Item, error) {
-	return ItemManager.FindFromMultiAssTable("item_contained_item", p.GoenId)
+	return itemManager.FindFromMultiAssTable("item_contained_item", p.GoenId)
 }
 
 func (p *Item) GetBelongedItem() (*Item, error) {
 	if p.BelongedItemGoenId == nil {
 		return nil, nil
 	} else {
-		return ItemManager.Get(*p.BelongedItemGoenId)
+		return itemManager.Get(*p.BelongedItemGoenId)
 	}
 }
 
