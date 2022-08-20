@@ -28,8 +28,8 @@ type Manager[T any, PT managerTypeParam[T]] struct {
 	maxGoenId int
 }
 
-func NewManager[T any](tableName string) *Manager[T, *T] {
-	manager := &Manager[T, *T]{}
+func NewManager[T any, PT managerTypeParam[T]](tableName string) *Manager[T, PT] {
+	manager := &Manager[T, PT]{}
 	manager.tableName = tableName
 	query := fmt.Sprintf("select goen_id from %s order by goen_id DESC limit 1", manager.tableName)
 	Db.Get(&manager.maxGoenId, query)

@@ -22,28 +22,31 @@ type multiAssInfo struct {
 
 type Entity struct {
 	EntityStatus
-
-	basicFieldChange []string
-	assFieldChange   []string
-	multiAssChange   []multiAssInfo
+	FieldChange
 
 	GoenId            int  `db:"goen_id"`
 	GoenInAllInstance bool `db:"goen_in_all_instance"`
+}
+
+type FieldChange struct {
+	basicFieldChange []string
+	assFieldChange   []string
+	multiAssChange   []multiAssInfo
 }
 
 func (p *Entity) getEntityStatus() EntityStatus {
 	return p.EntityStatus
 }
 
-func (p *Entity) getBasicFieldChange() []string {
+func (p *FieldChange) getBasicFieldChange() []string {
 	return p.basicFieldChange
 }
 
-func (p *Entity) getAssFieldChange() []string {
+func (p *FieldChange) getAssFieldChange() []string {
 	return p.assFieldChange
 }
 
-func (p *Entity) getMultiAssChange() []multiAssInfo {
+func (p *FieldChange) getMultiAssChange() []multiAssInfo {
 	return p.multiAssChange
 }
 
