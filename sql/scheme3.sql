@@ -17,10 +17,10 @@ create table item_contained_item
 );
 create table payment
 (
-    goen_id         int primary key,
-    goen_in_all_instance  bool         not null default (false),
-    goen_type       int   not null check ( goen_type between 0 and 2),
-    amount_tendered float not null default (0)
+    goen_id              int primary key,
+    goen_in_all_instance bool  not null default (false),
+    goen_type            int   not null check ( goen_type between 0 and 2),
+    amount_tendered      float not null default (0)
 );
 create table card_payment
 (
@@ -43,6 +43,6 @@ alter table item
     add constraint foreign key (belonged_item_goen_id) references item (goen_id) on delete set null;
 
 alter table card_payment
-    add constraint foreign key (goen_id) references payment(goen_id) on delete cascade;
+    add constraint foreign key (goen_id) references payment (goen_id) on delete cascade;
 alter table cash_payment
-    add constraint foreign key (goen_id) references payment(goen_id) on delete cascade;
+    add constraint foreign key (goen_id) references payment (goen_id) on delete cascade;
