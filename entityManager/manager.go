@@ -58,7 +58,8 @@ func (p *Manager[T, PT]) New() PT {
 
 func (p *Manager[T, PT]) Get(goenId int) (PT, error) {
 	e := PT(new(T))
-	query := fmt.Sprintf("select * from %s where goen_id=? and goen_in_all_instance = true", p.tableName)
+	//query := fmt.Sprintf("select * from %s where goen_id=? and goen_in_all_instance = true", p.tableName)
+	query := fmt.Sprintf("select * from %s where goen_id=?", p.tableName)
 	err := Db.Get(e, query, goenId)
 	if err != nil {
 		return nil, err
@@ -68,7 +69,7 @@ func (p *Manager[T, PT]) Get(goenId int) (PT, error) {
 	return e, nil
 }
 
-func (p *Manager[T, PT]) GetBy(member string, value any) (PT, error) {
+func (p *Manager[T, PT]) GetFromAllInstanceBy(member string, value any) (PT, error) {
 	e := PT(new(T))
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Get(e, query, value)
@@ -80,7 +81,7 @@ func (p *Manager[T, PT]) GetBy(member string, value any) (PT, error) {
 	return e, nil
 }
 
-func (p *Manager[T, PT]) FindBy(member string, value any) ([]PT, error) {
+func (p *Manager[T, PT]) FindFromAllInstanceBy(member string, value any) ([]PT, error) {
 	var entityArr []PT
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Select(&entityArr, query, value)
@@ -123,11 +124,11 @@ func (p *Manager[T, PT]) getUpdateQuery(changedField []string) string {
 // the length of changedField must > 0
 func (p *Manager[T, PT]) getInsertQuery(changedField []string) string {
 	lastField := changedField[len(changedField)-1]
-	query := fmt.Sprintf("insert into %s( ", p.tableName)
+	query := fmt.Sprintf("insert into %s(goen_id, ", p.tableName)
 	for _, field := range changedField[0 : len(changedField)-1] {
 		query += fmt.Sprintf("%s, ", field)
 	}
-	query += fmt.Sprintf("%s) values( ", lastField)
+	query += fmt.Sprintf("%s) values(:goen_id, ", lastField)
 	for _, field := range changedField[0 : len(changedField)-1] {
 		query += fmt.Sprintf(":%s ,", field)
 	}

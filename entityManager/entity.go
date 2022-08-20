@@ -21,7 +21,6 @@ type multiAssInfo struct {
 }
 
 type Entity struct {
-	EntityStatus
 	FieldChange
 
 	GoenId            int  `db:"goen_id"`
@@ -29,12 +28,13 @@ type Entity struct {
 }
 
 type FieldChange struct {
+	EntityStatus
 	basicFieldChange []string
 	assFieldChange   []string
 	multiAssChange   []multiAssInfo
 }
 
-func (p *Entity) getEntityStatus() EntityStatus {
+func (p *FieldChange) getEntityStatus() EntityStatus {
 	return p.EntityStatus
 }
 
@@ -50,26 +50,30 @@ func (p *FieldChange) getMultiAssChange() []multiAssInfo {
 	return p.multiAssChange
 }
 
-func (p *Entity) getGoenId() int {
-	return p.GoenId
-}
-
-func (p *Entity) afterNew(goenId int) {
+func (p *FieldChange) afterNew(goenId int) {
 	p.EntityStatus = Created
-	p.GoenId = goenId
-	p.AddBasicFieldChange("goen_id")
 }
-func (p *Entity) afterFind() {
+func (p *FieldChange) afterFind() {
 	p.EntityStatus = Existent
 }
-func (p *Entity) afterBasicSave() {
+func (p *FieldChange) afterBasicSave() {
 	p.EntityStatus = Existent
 	p.basicFieldChange = nil
 }
-func (p *Entity) afterAssUpdate() {
+func (p *FieldChange) afterAssUpdate() {
 	p.EntityStatus = Existent
 	p.assFieldChange = nil
 	p.multiAssChange = nil
+}
+
+//剩下的after都继承了FieldChange
+func (p *Entity) afterNew(goenId int) {
+	p.EntityStatus = Created
+	p.GoenId = goenId
+}
+
+func (p *Entity) getGoenId() int {
+	return p.GoenId
 }
 
 func (p *Entity) setGoenInAllInstance(goenInAllInstance bool) {
@@ -77,15 +81,15 @@ func (p *Entity) setGoenInAllInstance(goenInAllInstance bool) {
 	p.AddBasicFieldChange("goen_in_all_instance")
 }
 
-func (p *Entity) AddBasicFieldChange(field string) {
+func (p *FieldChange) AddBasicFieldChange(field string) {
 	p.basicFieldChange = append(p.basicFieldChange, field)
 }
 
-func (p *Entity) AddAssFieldChange(field string) {
+func (p *FieldChange) AddAssFieldChange(field string) {
 	p.assFieldChange = append(p.assFieldChange, field)
 }
 
-func (p *Entity) AddMultiAssChange(typ MultiAssChangeType, tableName string, targetId int) {
+func (p *FieldChange) AddMultiAssChange(typ MultiAssChangeType, tableName string, targetId int) {
 	p.multiAssChange = append(p.multiAssChange, multiAssInfo{
 		typ:       typ,
 		targetId:  targetId,

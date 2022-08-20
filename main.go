@@ -21,7 +21,7 @@ func main() {
 	//	log.Fatal(err)
 	//}
 
-	//item, err := entityManager.ItemManager.GetBy("barcode", 123)
+	//item, err := entityManager.ItemManager.GetFromAllInstanceBy("barcode", 123)
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
@@ -42,7 +42,7 @@ func main() {
 	if err := entityManager.Saver.Save(); err != nil {
 		log.Fatal(err)
 	}
-	item, err := entity.ItemManager.GetBy("barcode", 128)
+	item, err := entity.ItemManager.GetFromAllInstanceBy("barcode", 128)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func main() {
 	if err := entityManager.Saver.Save(); err != nil {
 		log.Fatal(err)
 	}
-	item, err = entity.ItemManager.GetBy("barcode", 128)
+	item, err = entity.ItemManager.GetFromAllInstanceBy("barcode", 128)
 	if err != nil {
 		log.Fatal(err)
 	}

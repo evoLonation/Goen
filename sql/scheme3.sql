@@ -7,7 +7,8 @@ create table item
     price                 float        not null default (0),
     stock_number          int          not null default (0),
     order_price           float        not null default (0),
-    belonged_item_goen_id int
+    belonged_item_goen_id int,
+    belonged_payment_goen_id int
 );
 create table item_contained_item
 (
@@ -19,7 +20,7 @@ create table payment
 (
     goen_id              int primary key,
     goen_in_all_instance bool  not null default (false),
-    goen_type            int   not null check ( goen_type between 0 and 2),
+    goen_inherit_type            int   not null check ( goen_inherit_type between 0 and 2),
     amount_tendered      float not null default (0)
 );
 create table card_payment
