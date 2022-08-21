@@ -1,28 +1,29 @@
 package entity
 
-import "Cocome/entityManager"
+import (
+	"Cocome/entityManager"
+)
 
-var itemManager entityManager.ManagerForEntity[*ItemEntity] = entityManager.NewManager[ItemEntity]("item")
-var ItemManager entityManager.ManagerForOther[*ItemEntity] = itemManager.(*entityManager.Manager[ItemEntity, *ItemEntity])
+var itemManager entityManager.ManagerForEntity[Item]
+var ItemManager entityManager.ManagerForOther[Item]
 
-type ItemInterface interface {
+type Item interface {
 	SetName(name string)
 	SetBarcode(barcode int)
 	SetPrice(price float64)
 	SetOrderPrice(price float64)
 	SetStockNumber(stockNumber int)
-	AddContainedItem(item *ItemEntity)
-	SetBelongedItem(item *ItemEntity)
-	SetBelongedPayment(payment PaymentInterface)
-
+	AddContainedItem(item Item)
+	SetBelongedItem(item Item)
+	SetBelongedPayment(payment Payment)
 	GetName() string
 	GetBarcode() int
 	GetPrice() float64
 	GetOrderPrice() float64
 	GetStockNumber() int
-	GetContainedItem() []*ItemEntity
-	GetBelongedItem() *ItemEntity
-	GetBelongedPayment() PaymentInterface
+	GetContainedItem() []Item
+	GetBelongedItem() Item
+	GetBelongedPayment() Payment
 }
 
 type ItemEntity struct {
@@ -57,12 +58,12 @@ func (p *ItemEntity) GetStockNumber() int {
 	return p.StockNumber
 }
 
-func (p *ItemEntity) GetContainedItem() []*ItemEntity {
+func (p *ItemEntity) GetContainedItem() []Item {
 	ret, _ := itemManager.FindFromMultiAssTable("item_contained_item", p.GoenId)
 	return ret
 }
 
-func (p *ItemEntity) GetBelongedItem() *ItemEntity {
+func (p *ItemEntity) GetBelongedItem() Item {
 	if p.BelongedItemGoenId == nil {
 		return nil
 	} else {
@@ -71,7 +72,7 @@ func (p *ItemEntity) GetBelongedItem() *ItemEntity {
 	}
 }
 
-func (p *ItemEntity) GetBelongedPayment() PaymentInterface {
+func (p *ItemEntity) GetBelongedPayment() Payment {
 	if p.BelongedPaymentGoenId == nil {
 		return nil
 	} else {
@@ -102,16 +103,18 @@ func (p *ItemEntity) SetStockNumber(stockNumber int) {
 	p.AddBasicFieldChange("stock_number")
 }
 
-func (p *ItemEntity) AddContainedItem(item *ItemEntity) {
-	p.AddMultiAssChange(entityManager.Include, "item_contained_item", item.GoenId)
+func (p *ItemEntity) AddContainedItem(item Item) {
+	p.AddMultiAssChange(entityManager.Include, "item_contained_item", itemManager.GetGoenId(item))
 }
-func (p *ItemEntity) SetBelongedItem(item *ItemEntity) {
-	p.BelongedItemGoenId = &item.GoenId
+
+func (p *ItemEntity) SetBelongedItem(item Item) {
+	id := itemManager.GetGoenId(item)
+	p.BelongedItemGoenId = &id
 	p.AddAssFieldChange("belonged_item_goen_id")
 }
 
-func (p *ItemEntity) SetBelongedPayment(payment PaymentInterface) {
-	goenId := payment.GetGoenId()
+func (p *ItemEntity) SetBelongedPayment(payment Payment) {
+	goenId := paymentManager.GetGoenId(payment)
 	p.BelongedPaymentGoenId = &goenId
 	p.AddAssFieldChange("belonged_payment_goen_id")
 }

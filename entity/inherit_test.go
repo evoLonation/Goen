@@ -4,6 +4,7 @@ import (
 	"Cocome/entityManager"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestInherit(t *testing.T) {
@@ -40,7 +41,7 @@ func TestInherit2(t *testing.T) {
 	prr, err := PaymentManager.FindFromAllInstanceBy("goen_id", 3)
 	require.NoError(t, err)
 	require.NotNil(t, prr)
-	var cp *CardPayment
+	var cp CardPayment
 	if p.GetRealType() == CardPaymentInheritType {
 		var err error
 		cp, err = p.TurnToCardPayment()
@@ -66,4 +67,34 @@ func TestInherit3(t *testing.T) {
 	cp2, err := p.TurnToCardPayment()
 	require.NoError(t, err)
 	require.NotNil(t, cp2)
+}
+
+func TestPayment(t *testing.T) {
+	p := PaymentManager.New()
+	cp := CardPaymentManager.New()
+	cp.SetCardAccountNumber(1838940019)
+	p.SetAmountTendered(123)
+	cp.SetAmountTendered(456)
+	cp.SetExpiryDate(time.Now())
+	PaymentManager.AddInAllInstance(p)
+	CardPaymentManager.AddInAllInstance(cp)
+
+	err := entityManager.Saver.Save()
+	require.NoError(t, err)
+
+	p2, err := PaymentManager.GetFromAllInstanceBy("amount_tendered", 123)
+	require.NoError(t, err)
+	require.NotNil(t, p2)
+	cp2, err := CardPaymentManager.GetFromAllInstanceBy("amount_tendered", 456)
+	require.NoError(t, err)
+	require.NotNil(t, cp2)
+	p3, err := PaymentManager.GetFromAllInstanceBy("amount_tendered", 456)
+	require.NoError(t, err)
+	require.NotNil(t, p3)
+
+	require.Equal(t, p3.GetRealType(), CardPaymentInheritType)
+	cp3, err := p3.TurnToCardPayment()
+	require.NoError(t, err)
+	require.NotNil(t, cp3)
+
 }
