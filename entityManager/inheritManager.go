@@ -1,39 +1,60 @@
 package entityManager
 
 import (
+	"database/sql"
 	"fmt"
 )
 
-type InheritManagerMethod interface {
-	getParentManager() InheritManagerMethod
+type EntityForInheritManager interface {
+	EntityForRecur
+	entityInterfaceForManager
+}
+
+type EntityForRecur interface {
+	GetParentEntity() EntityForInheritManager
+	// 下两个方法用于recurInheritAfterNew
+	// 最底层会调用
+	inheritAfterNew(goenId int, inheritType GoenInheritType)
+	// 除了最底层的每层会调用
+	setCreated()
+	// 下两个方法用于recurInheritAfterFind
+	// 最底层会调用
+	afterFind()
+	// 除了最底层的每层会调用
+	setExistent()
+}
+
+// InheritManagerForRecur 由于继承管理器需要处理本实体和本实体继承了的父实体，因此需要知道父实体对应管理器的某些方法来递归调用
+type InheritManagerForRecur interface {
+	getParentManager() InheritManagerForRecur
 	getAllTables() []string
-	recurAddInQueue(layer InheritEntity)
-	recurAfterFind(layer InheritEntity)
-	recurInheritAfterNew(goenId int, inheritType GoenInheritType, layer InheritEntity)
+	recurAddInQueue(layer EntityForInheritManager)
+	recurAfterFind(layer EntityForRecur)
+	recurInheritAfterNew(goenId int, inheritType GoenInheritType, layer EntityForRecur)
 	generateGoenId() int
 }
 
-// 以下是Manager扩展的方法用于继承实体中的基实体
-func (p *Manager[T, PT]) getParentManager() InheritManagerMethod {
+// 以下是Manager扩展的方法用于基实体
+func (p *Manager[T, PT]) getParentManager() InheritManagerForRecur {
 	return nil
 }
 func (p *Manager[T, PT]) getAllTables() []string {
 	return []string{p.tableName}
 }
-func (p *Manager[T, PT]) recurAddInQueue(layer InheritEntity) {
+func (p *Manager[T, PT]) recurAddInQueue(layer EntityForInheritManager) {
 	p.addInQueue(layer.(PT))
 }
-func (p *Manager[T, PT]) recurAfterFind(layer InheritEntity) {
+func (p *Manager[T, PT]) recurAfterFind(layer EntityForRecur) {
 	layer.afterFind()
 }
-func (p *Manager[T, PT]) recurInheritAfterNew(goenId int, inheritType GoenInheritType, layer InheritEntity) {
+func (p *Manager[T, PT]) recurInheritAfterNew(goenId int, inheritType GoenInheritType, layer EntityForRecur) {
 	layer.inheritAfterNew(goenId, inheritType)
 }
 
 // 以下是InheritManager的实现
 type inheritManagerTypeParam[T any] interface {
 	*T
-	InheritEntity
+	EntityForInheritManager
 }
 
 type InheritManager[T any, PT inheritManagerTypeParam[T]] struct {
@@ -41,7 +62,7 @@ type InheritManager[T any, PT inheritManagerTypeParam[T]] struct {
 	// 如果该类是基类，可以借用之前实现的管理器的方法
 	*Manager[T, PT]
 	// 如果该类不是基类，可以借用父辈管理器的方法
-	parentManager InheritManagerMethod
+	parentManager InheritManagerForRecur
 
 	GoenInheritType
 }
@@ -49,7 +70,6 @@ type InheritManager[T any, PT inheritManagerTypeParam[T]] struct {
 func (p *InheritManager[T, PT]) New() PT {
 	e := PT(new(T))
 	p.recurInheritAfterNew(p.generateGoenId(), p.GoenInheritType, e)
-	//e.inheritAfterNew(p.generateGoenId(), p.GoenInheritType)
 	p.recurAddInQueue(e)
 	return e
 }
@@ -57,7 +77,7 @@ func (p *InheritManager[T, PT]) generateGoenId() int {
 	return p.getParentManager().generateGoenId()
 }
 
-func NewInheritManager[T any, PT inheritManagerTypeParam[T]](tableName string, parentManager InheritManagerMethod, inheritType GoenInheritType) *InheritManager[T, PT] {
+func NewInheritManager[T any, PT inheritManagerTypeParam[T]](tableName string, parentManager InheritManagerForRecur, inheritType GoenInheritType) *InheritManager[T, PT] {
 	manager := &Manager[T, PT]{}
 	manager.tableName = tableName
 	return &InheritManager[T, PT]{
@@ -67,24 +87,26 @@ func NewInheritManager[T any, PT inheritManagerTypeParam[T]](tableName string, p
 	}
 }
 
-func (p *InheritManager[T, PT]) recurAddInQueue(layer InheritEntity) {
+func (p *InheritManager[T, PT]) recurAddInQueue(layer EntityForInheritManager) {
+	// 顺序要按照父实体在前子实体在后，否则容易出现先insert子实体但是没有对应父实体从而插入失败的情况
 	p.getParentManager().recurAddInQueue(layer.GetParentEntity())
 	p.addInQueue(layer.(PT))
 }
-func (p *InheritManager[T, PT]) recurAfterFind(layer InheritEntity) {
+func (p *InheritManager[T, PT]) recurAfterFind(layer EntityForRecur) {
 	p.getParentManager().recurAfterFind(layer.GetParentEntity())
-	layer.afterFind()
+	// 这里只是要初始化该layer的fieldChange
+	layer.setExistent()
 }
-func (p *InheritManager[T, PT]) recurInheritAfterNew(goenId int, inheritType GoenInheritType, layer InheritEntity) {
+func (p *InheritManager[T, PT]) recurInheritAfterNew(goenId int, inheritType GoenInheritType, layer EntityForRecur) {
 	p.getParentManager().recurInheritAfterNew(goenId, inheritType, layer.GetParentEntity())
-	layer.afterNew(goenId)
+	layer.setCreated()
 }
 
 func (p *InheritManager[T, PT]) getAllTables() []string {
 	return append(p.getParentManager().getAllTables(), p.tableName)
 }
 
-func (p *InheritManager[T, PT]) getParentManager() InheritManagerMethod {
+func (p *InheritManager[T, PT]) getParentManager() InheritManagerForRecur {
 	return p.parentManager
 }
 
@@ -96,11 +118,14 @@ func (p *InheritManager[T, PT]) Get(goenId int) (PT, error) {
 		query := fmt.Sprintf("select * from %s  where goen_id=?", table)
 		err := Db.Get(e, query, goenId)
 		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
 			return nil, err
 		}
 	}
 
-	//e.afterFind()
+	//e.setExistent()
 	p.recurAfterFind(e)
 	p.recurAddInQueue(e)
 
@@ -112,9 +137,12 @@ func (p *InheritManager[T, PT]) GetFromAllInstanceBy(field string, value any) (P
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true %s", p.getTablesQuery(), field, p.getJoinQuery())
 	err := Db.Get(e, query, value)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
-	//e.afterFind()
+	//e.setExistent()
 	p.recurAfterFind(e)
 	p.recurAddInQueue(e)
 	return e, nil
@@ -148,7 +176,7 @@ func (p *InheritManager[T, PT]) FindFromAllInstanceBy(field string, value any) (
 		return nil, err
 	}
 	for _, e := range entityArr {
-		//e.afterFind()
+		//e.setExistent()
 		p.recurAfterFind(e)
 		p.recurAddInQueue(e)
 	}
@@ -164,7 +192,7 @@ func (p *InheritManager[T, PT]) FindFromMultiAssTable(assTableName string, owner
 		return nil, err
 	}
 	for _, e := range entityArr {
-		//e.afterFind()
+		//e.setExistent()
 		p.recurAfterFind(e)
 		p.addInQueue(e)
 	}

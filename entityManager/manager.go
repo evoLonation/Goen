@@ -1,16 +1,17 @@
 package entityManager
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 )
 
-type entityForManager interface {
+type entityInterfaceForManager interface {
 	afterNew(int)
 	afterFind()
 	afterBasicSave()
-	afterAssUpdate()
-	getEntityStatus() EntityStatus
+	afterAssSave()
+	getEntityStatus() entityStatus
 	setGoenInAllInstance(bool)
 	getBasicFieldChange() []string
 	getAssFieldChange() []string
@@ -20,7 +21,7 @@ type entityForManager interface {
 
 type managerTypeParam[T any] interface {
 	*T
-	entityForManager
+	entityInterfaceForManager
 }
 
 type Manager[T any, PT managerTypeParam[T]] struct {
@@ -32,21 +33,16 @@ func NewManager[T any, PT managerTypeParam[T]](tableName string) *Manager[T, PT]
 	manager := &Manager[T, PT]{}
 	manager.tableName = tableName
 	query := fmt.Sprintf("select goen_id from %s order by goen_id DESC limit 1", manager.tableName)
-	Db.Get(&manager.maxGoenId, query)
+	err := Db.Get(&manager.maxGoenId, query)
+	if err != nil {
+		return manager
+	}
 	return manager
 }
 
 func (p *Manager[T, PT]) generateGoenId() int {
 	p.maxGoenId = p.maxGoenId + 1
 	return p.maxGoenId
-}
-func (p *Manager[T, PT]) addInQueue(e PT) {
-	Saver.addInBasicSaveQueue(func() error {
-		return p.saveBasic(e)
-	})
-	Saver.addInAssSaveQueue(func() error {
-		return p.updateAss(e)
-	})
 }
 
 func (p *Manager[T, PT]) New() PT {
@@ -56,12 +52,16 @@ func (p *Manager[T, PT]) New() PT {
 	return e
 }
 
+// Get if no rows, return nil, nil
 func (p *Manager[T, PT]) Get(goenId int) (PT, error) {
 	e := PT(new(T))
 	//query := fmt.Sprintf("select * from %s where goen_id=? and goen_in_all_instance = true", p.tableName)
 	query := fmt.Sprintf("select * from %s where goen_id=?", p.tableName)
 	err := Db.Get(e, query, goenId)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	e.afterFind()
@@ -74,6 +74,9 @@ func (p *Manager[T, PT]) GetFromAllInstanceBy(member string, value any) (PT, err
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Get(e, query, value)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	e.afterFind()
@@ -94,6 +97,15 @@ func (p *Manager[T, PT]) FindFromAllInstanceBy(member string, value any) ([]PT, 
 	}
 	return entityArr, nil
 }
+
+func (p *Manager[T, PT]) AddInAllInstance(e PT) {
+	e.setGoenInAllInstance(true)
+}
+
+func (p *Manager[T, PT]) RemoveFromAllInstance(e PT) {
+	e.setGoenInAllInstance(false)
+}
+
 func (p *Manager[T, PT]) FindFromMultiAssTable(tableName string, ownerId int) ([]PT, error) {
 	var entityArr []PT
 	query := fmt.Sprintf("select tmp.* from %s as ass, %s as tmp where ass.owner_goen_id = ? and ass.possession_goen_id = tmp.goen_id ",
@@ -106,6 +118,15 @@ func (p *Manager[T, PT]) FindFromMultiAssTable(tableName string, ownerId int) ([
 		p.addInQueue(e)
 	}
 	return entityArr, nil
+}
+
+func (p *Manager[T, PT]) addInQueue(e PT) {
+	Saver.addInBasicSaveQueue(func() error {
+		return p.saveBasic(e)
+	})
+	Saver.addInAssSaveQueue(func() error {
+		return p.saveAss(e)
+	})
 }
 
 // the length of changedField must > 0
@@ -162,8 +183,8 @@ func (p *Manager[T, PT]) saveBasic(e PT) error {
 	return nil
 }
 
-// updateAss e 's entityStatus must be Existence
-func (p *Manager[T, PT]) updateAss(e PT) error {
+// saveAss e 's entityStatus must be Existence
+func (p *Manager[T, PT]) saveAss(e PT) error {
 
 	if e.getEntityStatus() == Created {
 		return errors.New("entityStatus must be Existence")
@@ -184,14 +205,6 @@ func (p *Manager[T, PT]) updateAss(e PT) error {
 			return err
 		}
 	}
-	e.afterAssUpdate()
+	e.afterAssSave()
 	return nil
-}
-
-func (p *Manager[T, PT]) AddInAllInstance(e PT) {
-	e.setGoenInAllInstance(true)
-}
-
-func (p *Manager[T, PT]) RemoveFromAllInstance(e PT) {
-	e.setGoenInAllInstance(false)
 }

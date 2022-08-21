@@ -9,8 +9,10 @@ const (
 	CardPaymentInheritType entityManager.GoenInheritType = 1
 )
 
-var PaymentManager *entityManager.Manager[Payment, *Payment] = entityManager.NewManager[Payment, *Payment]("payment")
-var CardPaymentManager *entityManager.InheritManager[CardPayment, *CardPayment] = entityManager.NewInheritManager[CardPayment, *CardPayment]("card_payment", PaymentManager, CardPaymentInheritType)
+var paymentManager entityManager.ManagerForEntity[*Payment] = entityManager.NewManager[Payment, *Payment]("payment")
+var PaymentManager entityManager.ManagerForOther[*Payment] = paymentManager.(entityManager.ManagerForOther[*Payment])
+var cardPaymentManager entityManager.ManagerForEntity[*CardPayment] = entityManager.NewInheritManager[CardPayment, *CardPayment]("card_payment", PaymentManager.(entityManager.InheritManagerForRecur), CardPaymentInheritType)
+var CardPaymentManager entityManager.ManagerForOther[*CardPayment] = cardPaymentManager.(entityManager.ManagerForOther[*CardPayment])
 
 type PaymentInterface interface {
 	GetRealType() entityManager.GoenInheritType
@@ -38,7 +40,7 @@ func (p *Payment) GetAmountTendered() float64 {
 }
 
 func (p *Payment) TurnToCardPayment() (*CardPayment, error) {
-	return CardPaymentManager.Get(p.GoenId)
+	return cardPaymentManager.Get(p.GoenId)
 }
 
 type CardPayment struct {
@@ -48,7 +50,7 @@ type CardPayment struct {
 	CardAccountNumber int       `db:"card_account_number"`
 }
 
-func (p *CardPayment) GetParentEntity() entityManager.InheritEntity {
+func (p *CardPayment) GetParentEntity() entityManager.EntityForInheritManager {
 	return &p.Payment
 }
 

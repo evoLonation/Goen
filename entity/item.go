@@ -2,10 +2,30 @@ package entity
 
 import "Cocome/entityManager"
 
-var itemManager entityManager.ManagerForEntity[*Item] = entityManager.NewManager[Item]("item")
-var ItemManager entityManager.ManagerForOther[*Item] = itemManager.(*entityManager.Manager[Item, *Item])
+var itemManager entityManager.ManagerForEntity[*ItemEntity] = entityManager.NewManager[ItemEntity]("item")
+var ItemManager entityManager.ManagerForOther[*ItemEntity] = itemManager.(*entityManager.Manager[ItemEntity, *ItemEntity])
 
-type Item struct {
+type ItemInterface interface {
+	SetName(name string)
+	SetBarcode(barcode int)
+	SetPrice(price float64)
+	SetOrderPrice(price float64)
+	SetStockNumber(stockNumber int)
+	AddContainedItem(item *ItemEntity)
+	SetBelongedItem(item *ItemEntity)
+	SetBelongedPayment(payment PaymentInterface)
+
+	GetName() string
+	GetBarcode() int
+	GetPrice() float64
+	GetOrderPrice() float64
+	GetStockNumber() int
+	GetContainedItem() []*ItemEntity
+	GetBelongedItem() *ItemEntity
+	GetBelongedPayment() PaymentInterface
+}
+
+type ItemEntity struct {
 	entityManager.Entity
 	Barcode     int     `db:"barcode"`
 	Name        string  `db:"name"`
@@ -17,58 +37,81 @@ type Item struct {
 	BelongedPaymentGoenId *int `db:"belonged_payment_goen_id"`
 }
 
-func (p *Item) SetName(name string) {
+func (p *ItemEntity) GetName() string {
+	return p.Name
+}
+
+func (p *ItemEntity) GetBarcode() int {
+	return p.Barcode
+}
+
+func (p *ItemEntity) GetPrice() float64 {
+	return p.Price
+}
+
+func (p *ItemEntity) GetOrderPrice() float64 {
+	return p.OrderPrice
+}
+
+func (p *ItemEntity) GetStockNumber() int {
+	return p.StockNumber
+}
+
+func (p *ItemEntity) GetContainedItem() []*ItemEntity {
+	ret, _ := itemManager.FindFromMultiAssTable("item_contained_item", p.GoenId)
+	return ret
+}
+
+func (p *ItemEntity) GetBelongedItem() *ItemEntity {
+	if p.BelongedItemGoenId == nil {
+		return nil
+	} else {
+		ret, _ := itemManager.Get(*p.BelongedItemGoenId)
+		return ret
+	}
+}
+
+func (p *ItemEntity) GetBelongedPayment() PaymentInterface {
+	if p.BelongedPaymentGoenId == nil {
+		return nil
+	} else {
+		ret, _ := paymentManager.Get(*p.BelongedPaymentGoenId)
+		return ret
+	}
+}
+
+func (p *ItemEntity) SetName(name string) {
 	p.Name = name
 	p.AddBasicFieldChange("name")
 }
-func (p *Item) SetBarcode(barcode int) {
+func (p *ItemEntity) SetBarcode(barcode int) {
 	p.Barcode = barcode
 	p.AddBasicFieldChange("barcode")
 }
-func (p *Item) SetPrice(price float64) {
+func (p *ItemEntity) SetPrice(price float64) {
 	p.Price = price
 	p.AddBasicFieldChange("price")
 }
-func (p *Item) SetOrderPrice(price float64) {
+func (p *ItemEntity) SetOrderPrice(price float64) {
 	p.OrderPrice = price
 	p.AddBasicFieldChange("order_price")
 }
 
-func (p *Item) SetStockNumber(stockNumber string) {
-	p.Name = stockNumber
+func (p *ItemEntity) SetStockNumber(stockNumber int) {
+	p.StockNumber = stockNumber
 	p.AddBasicFieldChange("stock_number")
 }
 
-func (p *Item) AddContainedItem(item *Item) {
+func (p *ItemEntity) AddContainedItem(item *ItemEntity) {
 	p.AddMultiAssChange(entityManager.Include, "item_contained_item", item.GoenId)
 }
-func (p *Item) SetBelongedItem(item *Item) {
+func (p *ItemEntity) SetBelongedItem(item *ItemEntity) {
 	p.BelongedItemGoenId = &item.GoenId
 	p.AddAssFieldChange("belonged_item_goen_id")
 }
 
-func (p *Item) GetContainedItem() ([]*Item, error) {
-	return itemManager.FindFromMultiAssTable("item_contained_item", p.GoenId)
-}
-
-func (p *Item) GetBelongedItem() (*Item, error) {
-	if p.BelongedItemGoenId == nil {
-		return nil, nil
-	} else {
-		return itemManager.Get(*p.BelongedItemGoenId)
-	}
-}
-
-func (p *Item) SetBelongedPayment(payment PaymentInterface) {
+func (p *ItemEntity) SetBelongedPayment(payment PaymentInterface) {
 	goenId := payment.GetGoenId()
 	p.BelongedPaymentGoenId = &goenId
 	p.AddAssFieldChange("belonged_payment_goen_id")
-}
-
-func (p *Item) GetBelongedPayment() (PaymentInterface, error) {
-	if p.BelongedPaymentGoenId == nil {
-		return nil, nil
-	} else {
-		return PaymentManager.Get(*p.BelongedPaymentGoenId)
-	}
 }

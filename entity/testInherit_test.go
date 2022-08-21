@@ -36,8 +36,10 @@ func TestInherit(t *testing.T) {
 
 }
 func TestInherit2(t *testing.T) {
-	p, err := PaymentManager.Get(3)
+	p, err := PaymentManager.GetFromAllInstanceBy("goen_id", 3)
+	prr, err := PaymentManager.FindFromAllInstanceBy("goen_id", 3)
 	require.NoError(t, err)
+	require.NotNil(t, prr)
 	var cp *CardPayment
 	if p.GetRealType() == CardPaymentInheritType {
 		var err error
@@ -58,7 +60,7 @@ func TestInherit3(t *testing.T) {
 	err := entityManager.Saver.Save()
 	require.NoError(t, err)
 
-	p, err := item.GetBelongedPayment()
+	p := item.GetBelongedPayment()
 	require.NoError(t, err)
 	require.Equal(t, p.GetRealType(), CardPaymentInheritType)
 	cp2, err := p.TurnToCardPayment()
