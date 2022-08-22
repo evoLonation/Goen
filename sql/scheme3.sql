@@ -7,6 +7,7 @@ create table item
     price                    float        not null default (0),
     stock_number             int          not null default (0),
     order_price              float        not null default (0),
+    order_status             int          not null default (0), # 枚举类型
     belonged_item_goen_id    int,
     belonged_payment_goen_id int
 );
@@ -29,6 +30,11 @@ create table card_payment
     card_account_number int      not null default (0),
     expiry_date         datetime not null default ('0001-01-01 00:00:00')
 );
+create table credit_card_payment
+(
+    goen_id             int primary key ,
+    credit_amount       float not null  default (0)
+);
 create table cash_payment
 (
     goen_id int primary key,
@@ -47,3 +53,5 @@ alter table card_payment
     add constraint foreign key (goen_id) references payment (goen_id) on delete cascade;
 alter table cash_payment
     add constraint foreign key (goen_id) references payment (goen_id) on delete cascade;
+alter table credit_card_payment
+    add constraint foreign key (goen_id) references card_payment (goen_id) on delete cascade;
