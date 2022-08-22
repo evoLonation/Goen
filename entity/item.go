@@ -7,12 +7,21 @@ import (
 var itemManager entityManager.ManagerForEntity[Item]
 var ItemManager entityManager.ManagerForOther[Item]
 
+type OrderStatus int
+
+const (
+	OrderStatusNEW OrderStatus = iota
+	OrderStatusRECEIVED
+	OrderStatusREQUESTED
+)
+
 type Item interface {
 	SetName(name string)
 	SetBarcode(barcode int)
 	SetPrice(price float64)
 	SetOrderPrice(price float64)
 	SetStockNumber(stockNumber int)
+	SetOrderStatus(status OrderStatus)
 	AddContainedItem(item Item)
 	SetBelongedItem(item Item)
 	SetBelongedPayment(payment Payment)
@@ -21,6 +30,7 @@ type Item interface {
 	GetPrice() float64
 	GetOrderPrice() float64
 	GetStockNumber() int
+	GetOrderStatus() OrderStatus
 	GetContainedItem() []Item
 	GetBelongedItem() Item
 	GetBelongedPayment() Payment
@@ -28,11 +38,12 @@ type Item interface {
 
 type ItemEntity struct {
 	entityManager.Entity
-	Barcode     int     `db:"barcode"`
-	Name        string  `db:"name"`
-	Price       float64 `db:"price"`
-	StockNumber int     `db:"stock_number"`
-	OrderPrice  float64 `db:"order_price"`
+	Barcode     int         `db:"barcode"`
+	Name        string      `db:"name"`
+	Price       float64     `db:"price"`
+	StockNumber int         `db:"stock_number"`
+	OrderPrice  float64     `db:"order_price"`
+	OrderStatus OrderStatus `db:"order_status"`
 
 	BelongedItemGoenId    *int `db:"belonged_item_goen_id"`
 	BelongedPaymentGoenId *int `db:"belonged_payment_goen_id"`
@@ -56,6 +67,10 @@ func (p *ItemEntity) GetOrderPrice() float64 {
 
 func (p *ItemEntity) GetStockNumber() int {
 	return p.StockNumber
+}
+
+func (p *ItemEntity) GetOrderStatus() OrderStatus {
+	return p.OrderStatus
 }
 
 func (p *ItemEntity) GetContainedItem() []Item {
@@ -101,6 +116,11 @@ func (p *ItemEntity) SetOrderPrice(price float64) {
 func (p *ItemEntity) SetStockNumber(stockNumber int) {
 	p.StockNumber = stockNumber
 	p.AddBasicFieldChange("stock_number")
+}
+
+func (p *ItemEntity) SetOrderStatus(status OrderStatus) {
+	p.OrderStatus = status
+	p.AddBasicFieldChange("order_status")
 }
 
 func (p *ItemEntity) AddContainedItem(item Item) {
