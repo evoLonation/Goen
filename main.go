@@ -51,7 +51,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	items, _ := item3.GetContainedItem()
+	items := item3.GetContainedItem()
 	entity.ItemManager.RemoveFromAllInstance(items[0])
 
 	if err := entityManager.Saver.Save(); err != nil {
