@@ -7,10 +7,6 @@ import (
 var paymentManager entityManager.ManagerForEntity[Payment]
 var PaymentManager entityManager.ManagerForOther[Payment]
 
-func init() {
-
-}
-
 type PaymentGetSet interface {
 	SetAmountTendered(amountTendered float64)
 	GetAmountTendered() float64

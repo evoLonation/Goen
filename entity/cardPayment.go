@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-const (
-	CardPaymentInheritType entityManager.GoenInheritType = 1
-)
-
 var cardPaymentManager entityManager.ManagerForEntity[CardPayment]
 var CardPaymentManager entityManager.ManagerForOther[CardPayment]
 

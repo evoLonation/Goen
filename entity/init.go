@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+const CardPaymentInheritType entityManager.GoenInheritType = iota
+
 func init() {
 
 	tmpItemManager, err := entityManager.NewManager[ItemEntity, Item]("item")
