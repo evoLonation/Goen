@@ -79,11 +79,12 @@ func NewInheritManager[T any, PT any](tableName string, parentManager InheritMan
 	}
 	manager := &manager[T, PT]{}
 	manager.tableName = tableName
-	return &inheritManager[T, PT]{
+	ret := &inheritManager[T, PT]{
 		GoenInheritType: inheritType,
 		parentManager:   parentManager,
 		manager:         manager,
-	}, nil
+	}
+	return ret, nil
 }
 
 func (p *inheritManager[T, PT]) getInterface(e *T) EntityForInheritManager {

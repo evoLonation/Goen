@@ -6,7 +6,7 @@ import (
 )
 
 var cardPaymentManager entityManager.ManagerForEntity[CardPayment]
-var CardPaymentManager entityManager.ManagerForOther[CardPayment]
+var CardPaymentManager entityManager.InheritManagerForOther[CardPayment]
 
 type CardPayment interface {
 	Payment

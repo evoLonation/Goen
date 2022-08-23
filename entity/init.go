@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-const CardPaymentInheritType entityManager.GoenInheritType = iota
+const CardPaymentInheritType entityManager.GoenInheritType = iota + 1
 
 func init() {
 

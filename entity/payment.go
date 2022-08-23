@@ -5,7 +5,7 @@ import (
 )
 
 var paymentManager entityManager.ManagerForEntity[Payment]
-var PaymentManager entityManager.ManagerForOther[Payment]
+var PaymentManager entityManager.InheritManagerForOther[Payment]
 
 type PaymentGetSet interface {
 	SetAmountTendered(amountTendered float64)
@@ -15,17 +15,12 @@ type PaymentGetSet interface {
 type Payment interface {
 	PaymentGetSet
 	GetRealType() entityManager.GoenInheritType
-	TurnToCardPayment() (CardPayment, error)
 }
 
 type PaymentEntity struct {
 	entityManager.BasicEntity
 
 	AmountTendered float64 `db:"amount_tendered"`
-}
-
-func (p *PaymentEntity) TurnToCardPayment() (CardPayment, error) {
-	return cardPaymentManager.Get(p.GoenId)
 }
 
 func (p *PaymentEntity) SetAmountTendered(amountTendered float64) {

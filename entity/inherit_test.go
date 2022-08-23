@@ -44,7 +44,7 @@ func TestInherit2(t *testing.T) {
 	var cp CardPayment
 	if p.GetRealType() == CardPaymentInheritType {
 		var err error
-		cp, err = p.TurnToCardPayment()
+		cp, err = CardPaymentManager.CastFrom(p)
 		require.NoError(t, err)
 	}
 	require.NotNil(t, cp)
@@ -64,7 +64,7 @@ func TestInherit3(t *testing.T) {
 	p := item.GetBelongedPayment()
 	require.NoError(t, err)
 	require.Equal(t, p.GetRealType(), CardPaymentInheritType)
-	cp2, err := p.TurnToCardPayment()
+	cp2, err := CardPaymentManager.CastFrom(p)
 	require.NoError(t, err)
 	require.NotNil(t, cp2)
 }
@@ -93,7 +93,7 @@ func TestPayment(t *testing.T) {
 	require.NotNil(t, p3)
 
 	require.Equal(t, p3.GetRealType(), CardPaymentInheritType)
-	cp3, err := p3.TurnToCardPayment()
+	cp3, err := CardPaymentManager.CastFrom(p3)
 	require.NoError(t, err)
 	require.NotNil(t, cp3)
 

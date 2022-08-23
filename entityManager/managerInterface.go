@@ -1,5 +1,10 @@
 package entityManager
 
+type InheritManagerForOther[T any] interface {
+	ManagerForOther[T]
+	CastFrom(entityForCast) (T, error)
+}
+
 type ManagerForOther[T any] interface {
 	New() T
 	GetFromAllInstanceBy(member string, value any) (T, error)
