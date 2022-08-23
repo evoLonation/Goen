@@ -9,6 +9,7 @@ import (
 type EntityForInheritManager interface {
 	entityForRecur
 	EntityForManager
+	GetRealType() GoenInheritType
 }
 
 type entityForRecur interface {

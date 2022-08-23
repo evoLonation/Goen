@@ -2,7 +2,8 @@ package entityManager
 
 type InheritManagerForOther[T any] interface {
 	ManagerForOther[T]
-	CastFrom(entityForCast) (T, error)
+	CastFrom(any) (T, error)
+	GetRealType(T) GoenInheritType
 }
 
 type ManagerForOther[T any] interface {

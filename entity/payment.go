@@ -7,14 +7,9 @@ import (
 var paymentManager entityManager.ManagerForEntity[Payment]
 var PaymentManager entityManager.InheritManagerForOther[Payment]
 
-type PaymentGetSet interface {
+type Payment interface {
 	SetAmountTendered(amountTendered float64)
 	GetAmountTendered() float64
-}
-
-type Payment interface {
-	PaymentGetSet
-	GetRealType() entityManager.GoenInheritType
 }
 
 type PaymentEntity struct {
