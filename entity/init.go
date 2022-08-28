@@ -1,35 +1,35 @@
 package entity
 
 import (
-	"Cocome/entityManager"
+	"Cocome/entityRepo"
 	"log"
 )
 
 const (
-	CardPaymentInheritType entityManager.GoenInheritType = iota + 1
+	CardPaymentInheritType entityRepo.GoenInheritType = iota + 1
 )
 
 func init() {
 
-	tmpItemManager, err := entityManager.NewManager[ItemEntity, Item]("item")
+	tmpItemRepo, err := entityRepo.NewRepo[ItemEntity, Item]("item")
 	if err != nil {
 		log.Fatal(err)
 	}
-	itemManager = tmpItemManager
-	ItemManager = tmpItemManager
+	itemRepo = tmpItemRepo
+	ItemRepo = tmpItemRepo
 
-	tmpPaymentManager, err := entityManager.NewManager[PaymentEntity, Payment]("payment")
+	tmpPaymentRepo, err := entityRepo.NewRepo[PaymentEntity, Payment]("payment")
 	if err != nil {
 		log.Fatal(err)
 	}
-	paymentManager = tmpPaymentManager
-	PaymentManager = tmpPaymentManager
+	paymentRepo = tmpPaymentRepo
+	PaymentRepo = tmpPaymentRepo
 
-	tmpCardPaymentManager, err := entityManager.NewInheritManager[CardPaymentEntity, CardPayment]("card_payment", tmpPaymentManager, CardPaymentInheritType)
+	tmpCardPaymentRepo, err := entityRepo.NewInheritRepo[CardPaymentEntity, CardPayment]("card_payment", tmpPaymentRepo, CardPaymentInheritType)
 	if err != nil {
 		log.Fatal(err)
 	}
-	cardPaymentManager = tmpCardPaymentManager
-	CardPaymentManager = tmpCardPaymentManager
+	cardPaymentRepo = tmpCardPaymentRepo
+	CardPaymentRepo = tmpCardPaymentRepo
 
 }

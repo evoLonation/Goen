@@ -1,4 +1,4 @@
-package entityManager
+package entityRepo
 
 type entityStatus int
 

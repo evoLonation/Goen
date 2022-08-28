@@ -1,4 +1,4 @@
-package entityManager
+package entityRepo
 
 type GoenInheritType int
 
@@ -13,7 +13,7 @@ func (p *BasicEntity) inheritAfterNew(goenId int, inheritType GoenInheritType) {
 	p.AddBasicFieldChange("goen_inherit_type")
 }
 
-func (p *BasicEntity) GetParentEntity() EntityForInheritManager {
+func (p *BasicEntity) GetParentEntity() EntityForInheritRepo {
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package entityManager
+package entityRepo
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-type EntityForManager interface {
+type EntityForRepo interface {
 	afterNew(int)
 	afterFind()
 	afterBasicSave()
@@ -19,53 +19,53 @@ type EntityForManager interface {
 	GetGoenId() int
 }
 
-//type managerTypeParam[T any] interface {
+//type repoTypeParam[T any] interface {
 //	*T
-//	EntityForManager
+//	EntityForRepo
 //}
 
-type manager[T any, PT any] struct {
+type repo[T any, PT any] struct {
 	tableName string
 	maxGoenId int
 }
 
-func NewManager[T any, PT any](tableName string) (*manager[T, PT], error) {
+func NewRepo[T any, PT any](tableName string) (*repo[T, PT], error) {
 	_, ok := (any(new(T))).(PT)
 	if !ok {
 		return nil, errors.New("the type value T does not implement PT ")
 	}
-	_, ok = (any(new(T))).(EntityForManager)
+	_, ok = (any(new(T))).(EntityForRepo)
 	if !ok {
-		return nil, errors.New("the type value T does not implement EntityForManager ")
+		return nil, errors.New("the type value T does not implement EntityForRepo ")
 	}
-	manager := &manager[T, PT]{}
-	manager.tableName = tableName
-	query := fmt.Sprintf("select goen_id from %s order by goen_id DESC limit 1", manager.tableName)
-	err := Db.Get(&manager.maxGoenId, query)
+	repo := &repo[T, PT]{}
+	repo.tableName = tableName
+	query := fmt.Sprintf("select goen_id from %s order by goen_id DESC limit 1", repo.tableName)
+	err := Db.Get(&repo.maxGoenId, query)
 	if err != nil && err != sql.ErrNoRows {
-		return manager, err
+		return repo, err
 	}
-	return manager, nil
+	return repo, nil
 }
 
-func (p *manager[T, PT]) getInterface(e *T) EntityForManager {
-	return (any(e)).(EntityForManager)
+func (p *repo[T, PT]) getInterface(e *T) EntityForRepo {
+	return (any(e)).(EntityForRepo)
 }
 
-func (p *manager[T, PT]) getPT(ei EntityForManager) PT {
+func (p *repo[T, PT]) getPT(ei EntityForRepo) PT {
 	return (any(ei)).(PT)
 }
 
-func (p *manager[T, PT]) GetGoenId(e PT) int {
-	return (any(e)).(EntityForManager).GetGoenId()
+func (p *repo[T, PT]) GetGoenId(e PT) int {
+	return (any(e)).(EntityForRepo).GetGoenId()
 }
 
-func (p *manager[T, PT]) generateGoenId() int {
+func (p *repo[T, PT]) generateGoenId() int {
 	p.maxGoenId = p.maxGoenId + 1
 	return p.maxGoenId
 }
 
-func (p *manager[T, PT]) New() PT {
+func (p *repo[T, PT]) New() PT {
 	e := p.getInterface(new(T))
 	e.afterNew(p.generateGoenId())
 	p.addInQueue(e)
@@ -73,7 +73,7 @@ func (p *manager[T, PT]) New() PT {
 }
 
 // Get if no rows, return nil, nil
-func (p *manager[T, PT]) Get(goenId int) (PT, error) {
+func (p *repo[T, PT]) Get(goenId int) (PT, error) {
 	e := p.getInterface(new(T))
 	//query := fmt.Sprintf("select * from %s where goen_id=? and goen_in_all_instance = true", p.tableName)
 	query := fmt.Sprintf("select * from %s where goen_id=?", p.tableName)
@@ -90,7 +90,7 @@ func (p *manager[T, PT]) Get(goenId int) (PT, error) {
 	return p.getPT(e), nil
 }
 
-func (p *manager[T, PT]) GetFromAllInstanceBy(member string, value any) (PT, error) {
+func (p *repo[T, PT]) GetFromAllInstanceBy(member string, value any) (PT, error) {
 	e := p.getInterface(new(T))
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Get(e, query, value)
@@ -106,7 +106,7 @@ func (p *manager[T, PT]) GetFromAllInstanceBy(member string, value any) (PT, err
 	return p.getPT(e), nil
 }
 
-func (p *manager[T, PT]) FindFromAllInstanceBy(member string, value any) ([]PT, error) {
+func (p *repo[T, PT]) FindFromAllInstanceBy(member string, value any) ([]PT, error) {
 	var entityArr []*T
 	var interfaceArr []PT
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
@@ -123,15 +123,15 @@ func (p *manager[T, PT]) FindFromAllInstanceBy(member string, value any) ([]PT, 
 	return interfaceArr, nil
 }
 
-func (p *manager[T, PT]) AddInAllInstance(e PT) {
-	(any(e)).(EntityForManager).setGoenInAllInstance(true)
+func (p *repo[T, PT]) AddInAllInstance(e PT) {
+	(any(e)).(EntityForRepo).setGoenInAllInstance(true)
 }
 
-func (p *manager[T, PT]) RemoveFromAllInstance(e PT) {
-	(any(e)).(EntityForManager).setGoenInAllInstance(false)
+func (p *repo[T, PT]) RemoveFromAllInstance(e PT) {
+	(any(e)).(EntityForRepo).setGoenInAllInstance(false)
 }
 
-func (p *manager[T, PT]) FindFromMultiAssTable(tableName string, ownerId int) ([]PT, error) {
+func (p *repo[T, PT]) FindFromMultiAssTable(tableName string, ownerId int) ([]PT, error) {
 	var entityArr []*T
 	var interfaceArr []PT
 	query := fmt.Sprintf("select tmp.* from %s as ass, %s as tmp where ass.owner_goen_id = ? and ass.possession_goen_id = tmp.goen_id ",
@@ -148,7 +148,7 @@ func (p *manager[T, PT]) FindFromMultiAssTable(tableName string, ownerId int) ([
 	return interfaceArr, nil
 }
 
-func (p *manager[T, PT]) addInQueue(e EntityForManager) {
+func (p *repo[T, PT]) addInQueue(e EntityForRepo) {
 	Saver.addInBasicSaveQueue(func() error {
 		return p.saveBasic(e)
 	})
@@ -158,7 +158,7 @@ func (p *manager[T, PT]) addInQueue(e EntityForManager) {
 }
 
 // the length of changedField must > 0
-func (p *manager[T, PT]) getUpdateQuery(changedField []string) string {
+func (p *repo[T, PT]) getUpdateQuery(changedField []string) string {
 	query := fmt.Sprintf("update %s set ", p.tableName)
 	for _, field := range changedField[0 : len(changedField)-1] {
 		query += fmt.Sprintf("%s= :%s,", field, field)
@@ -171,7 +171,7 @@ func (p *manager[T, PT]) getUpdateQuery(changedField []string) string {
 }
 
 // the length of changedField must > 0
-func (p *manager[T, PT]) getInsertQuery(changedField []string) string {
+func (p *repo[T, PT]) getInsertQuery(changedField []string) string {
 	lastField := changedField[len(changedField)-1]
 	query := fmt.Sprintf("insert into %s(goen_id, ", p.tableName)
 	for _, field := range changedField[0 : len(changedField)-1] {
@@ -186,16 +186,16 @@ func (p *manager[T, PT]) getInsertQuery(changedField []string) string {
 	return query
 }
 
-func (p *manager[T, PT]) getMultiAssInsertQuery(tableName string) string {
+func (p *repo[T, PT]) getMultiAssInsertQuery(tableName string) string {
 	query := fmt.Sprintf("insert into %s (owner_goen_id, possession_goen_id) values (?, ?)", tableName)
 	return query
 }
-func (p *manager[T, PT]) getMultiAssDeleteQuery(tableName string) string {
+func (p *repo[T, PT]) getMultiAssDeleteQuery(tableName string) string {
 	query := fmt.Sprintf("delete from %s where owner_goen_id=? and possession_goen_id=?", tableName)
 	return query
 }
 
-func (p *manager[T, PT]) saveBasic(e EntityForManager) error {
+func (p *repo[T, PT]) saveBasic(e EntityForRepo) error {
 	if len(e.getBasicFieldChange()) != 0 {
 		if e.getEntityStatus() == Created {
 			if _, err := Db.NamedExec(p.getInsertQuery(e.getBasicFieldChange()), e); err != nil {
@@ -212,7 +212,7 @@ func (p *manager[T, PT]) saveBasic(e EntityForManager) error {
 }
 
 // saveAss e 's entityStatus must be Existence
-func (p *manager[T, PT]) saveAss(e EntityForManager) error {
+func (p *repo[T, PT]) saveAss(e EntityForRepo) error {
 
 	if e.getEntityStatus() == Created {
 		return errors.New("entityStatus must be Existence")

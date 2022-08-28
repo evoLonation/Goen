@@ -1,11 +1,11 @@
 package entity
 
 import (
-	"Cocome/entityManager"
+	"Cocome/entityRepo"
 )
 
-var itemManager entityManager.ManagerForEntity[Item]
-var ItemManager entityManager.ManagerForOther[Item]
+var itemRepo entityRepo.RepoForEntity[Item]
+var ItemRepo entityRepo.RepoForOther[Item]
 
 type OrderStatus int
 
@@ -37,7 +37,7 @@ type Item interface {
 }
 
 type ItemEntity struct {
-	entityManager.Entity
+	entityRepo.Entity
 	Barcode     int         `db:"barcode"`
 	Name        string      `db:"name"`
 	Price       float64     `db:"price"`
@@ -74,7 +74,7 @@ func (p *ItemEntity) GetOrderStatus() OrderStatus {
 }
 
 func (p *ItemEntity) GetContainedItem() []Item {
-	ret, _ := itemManager.FindFromMultiAssTable("item_contained_item", p.GoenId)
+	ret, _ := itemRepo.FindFromMultiAssTable("item_contained_item", p.GoenId)
 	return ret
 }
 
@@ -82,7 +82,7 @@ func (p *ItemEntity) GetBelongedItem() Item {
 	if p.BelongedItemGoenId == nil {
 		return nil
 	} else {
-		ret, _ := itemManager.Get(*p.BelongedItemGoenId)
+		ret, _ := itemRepo.Get(*p.BelongedItemGoenId)
 		return ret
 	}
 }
@@ -91,7 +91,7 @@ func (p *ItemEntity) GetBelongedPayment() Payment {
 	if p.BelongedPaymentGoenId == nil {
 		return nil
 	} else {
-		ret, _ := paymentManager.Get(*p.BelongedPaymentGoenId)
+		ret, _ := paymentRepo.Get(*p.BelongedPaymentGoenId)
 		return ret
 	}
 }
@@ -124,17 +124,17 @@ func (p *ItemEntity) SetOrderStatus(status OrderStatus) {
 }
 
 func (p *ItemEntity) AddContainedItem(item Item) {
-	p.AddMultiAssChange(entityManager.Include, "item_contained_item", itemManager.GetGoenId(item))
+	p.AddMultiAssChange(entityRepo.Include, "item_contained_item", itemRepo.GetGoenId(item))
 }
 
 func (p *ItemEntity) SetBelongedItem(item Item) {
-	id := itemManager.GetGoenId(item)
+	id := itemRepo.GetGoenId(item)
 	p.BelongedItemGoenId = &id
 	p.AddAssFieldChange("belonged_item_goen_id")
 }
 
 func (p *ItemEntity) SetBelongedPayment(payment Payment) {
-	goenId := paymentManager.GetGoenId(payment)
+	goenId := paymentRepo.GetGoenId(payment)
 	p.BelongedPaymentGoenId = &goenId
 	p.AddAssFieldChange("belonged_payment_goen_id")
 }

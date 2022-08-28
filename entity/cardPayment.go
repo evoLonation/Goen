@@ -1,12 +1,12 @@
 package entity
 
 import (
-	"Cocome/entityManager"
+	"Cocome/entityRepo"
 	"time"
 )
 
-var cardPaymentManager entityManager.ManagerForEntity[CardPayment]
-var CardPaymentManager entityManager.InheritManagerForOther[CardPayment]
+var cardPaymentRepo entityRepo.RepoForEntity[CardPayment]
+var CardPaymentRepo entityRepo.InheritRepoForOther[CardPayment]
 
 type CardPayment interface {
 	Payment
@@ -18,12 +18,12 @@ type CardPayment interface {
 
 type CardPaymentEntity struct {
 	PaymentEntity
-	entityManager.FieldChange
+	entityRepo.FieldChange
 	ExpiryDate        time.Time `db:"expiry_date"`
 	CardAccountNumber int       `db:"card_account_number"`
 }
 
-func (p *CardPaymentEntity) GetParentEntity() entityManager.EntityForInheritManager {
+func (p *CardPaymentEntity) GetParentEntity() entityRepo.EntityForInheritRepo {
 	return &p.PaymentEntity
 }
 

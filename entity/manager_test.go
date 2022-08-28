@@ -1,14 +1,14 @@
 package entity
 
 import (
-	"Cocome/entityManager"
+	"Cocome/entityRepo"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
-func TestInterfaceManager(t *testing.T) {
-	item := ItemManager.New()
-	item2 := ItemManager.New()
+func TestInterfaceRepo(t *testing.T) {
+	item := ItemRepo.New()
+	item2 := ItemRepo.New()
 	item.SetPrice(123.0123)
 	item2.SetPrice(456.0123)
 	item.SetBarcode(114514)
@@ -18,7 +18,7 @@ func TestInterfaceManager(t *testing.T) {
 	item2.AddContainedItem(item)
 	item2.SetBelongedItem(item)
 
-	err := entityManager.Saver.Save()
+	err := entityRepo.Saver.Save()
 	require.NoError(t, err)
 
 	item3 := item.GetBelongedItem()

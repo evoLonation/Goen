@@ -1,4 +1,4 @@
-package entityManager
+package entityRepo
 
 type saver struct {
 	waitBasicSave       []func() error

@@ -1,11 +1,11 @@
 package entity
 
 import (
-	"Cocome/entityManager"
+	"Cocome/entityRepo"
 )
 
-var paymentManager entityManager.ManagerForEntity[Payment]
-var PaymentManager entityManager.InheritManagerForOther[Payment]
+var paymentRepo entityRepo.RepoForEntity[Payment]
+var PaymentRepo entityRepo.InheritRepoForOther[Payment]
 
 type Payment interface {
 	SetAmountTendered(amountTendered float64)
@@ -13,7 +13,7 @@ type Payment interface {
 }
 
 type PaymentEntity struct {
-	entityManager.BasicEntity
+	entityRepo.BasicEntity
 
 	AmountTendered float64 `db:"amount_tendered"`
 }
