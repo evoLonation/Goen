@@ -90,29 +90,31 @@ func (p *repo[T, PT]) Get(goenId int) (PT, error) {
 	return p.getPT(e), nil
 }
 
-func (p *repo[T, PT]) GetFromAllInstanceBy(member string, value any) (PT, error) {
+func (p *repo[T, PT]) GetFromAllInstanceBy(member string, value any) PT {
 	e := p.getInterface(new(T))
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Get(e, query, value)
 	if err != nil {
 		var nilPT PT
 		if err == sql.ErrNoRows {
-			return nilPT, nil
+			return nilPT
 		}
-		return nilPT, err
+		panic(err)
+		return nilPT
 	}
 	e.afterFind()
 	p.addInQueue(e)
-	return p.getPT(e), nil
+	return p.getPT(e)
 }
 
-func (p *repo[T, PT]) FindFromAllInstanceBy(member string, value any) ([]PT, error) {
+func (p *repo[T, PT]) FindFromAllInstanceBy(member string, value any) []PT {
 	var entityArr []*T
 	var interfaceArr []PT
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true", p.tableName, member)
 	err := Db.Select(&entityArr, query, value)
 	if err != nil {
-		return nil, err
+		panic(err)
+		return nil
 	}
 	for _, e := range entityArr {
 		ei := p.getInterface(e)
@@ -120,7 +122,7 @@ func (p *repo[T, PT]) FindFromAllInstanceBy(member string, value any) ([]PT, err
 		p.addInQueue(ei)
 		interfaceArr = append(interfaceArr, p.getPT(ei))
 	}
-	return interfaceArr, nil
+	return interfaceArr
 }
 
 func (p *repo[T, PT]) AddInAllInstance(e PT) {

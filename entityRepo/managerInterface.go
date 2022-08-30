@@ -8,8 +8,9 @@ type InheritRepoForOther[T any] interface {
 
 type RepoForOther[T any] interface {
 	New() T
-	GetFromAllInstanceBy(member string, value any) (T, error)
-	FindFromAllInstanceBy(member string, value any) ([]T, error)
+	// 如果没有找到，则不必报错而是返回空值
+	GetFromAllInstanceBy(member string, value any) T
+	FindFromAllInstanceBy(member string, value any) []T
 	AddInAllInstance(e T)
 	RemoveFromAllInstance(e T)
 }

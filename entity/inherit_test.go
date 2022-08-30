@@ -23,11 +23,10 @@ func TestInherit(t *testing.T) {
 	//require.NoError(t, err)
 
 	//cp2, err := CardPaymentRepo.GetFromAllInstanceBy("amount_tendered", 0.111222)
-	cp2, err := CardPaymentRepo.GetFromAllInstanceBy("card_account_number", 123124)
-	require.NoError(t, err)
+	cp2 := CardPaymentRepo.GetFromAllInstanceBy("card_account_number", 123124)
 	cp2.SetAmountTendered(0.333444)
 	cp2.SetCardAccountNumber(3215125)
-	err = entityRepo.Saver.Save()
+	err := entityRepo.Saver.Save()
 	require.NoError(t, err)
 	//CardPaymentRepo.GetFromAllInstanceBy("expiry_date", 123)
 	//CardPaymentRepo.GetFromAllInstanceBy("amount_tendered", 123)
@@ -37,9 +36,8 @@ func TestInherit(t *testing.T) {
 
 }
 func TestInherit2(t *testing.T) {
-	p, err := PaymentRepo.GetFromAllInstanceBy("goen_id", 3)
-	prr, err := PaymentRepo.FindFromAllInstanceBy("goen_id", 3)
-	require.NoError(t, err)
+	p := PaymentRepo.GetFromAllInstanceBy("goen_id", 3)
+	prr := PaymentRepo.FindFromAllInstanceBy("goen_id", 3)
 	require.NotNil(t, prr)
 	var cp CardPayment
 	if PaymentRepo.GetRealType(p) == CardPaymentInheritType {
@@ -82,13 +80,13 @@ func TestPayment(t *testing.T) {
 	err := entityRepo.Saver.Save()
 	require.NoError(t, err)
 
-	p2, err := PaymentRepo.GetFromAllInstanceBy("amount_tendered", 123)
+	p2 := PaymentRepo.GetFromAllInstanceBy("amount_tendered", 123)
 	require.NoError(t, err)
 	require.NotNil(t, p2)
-	cp2, err := CardPaymentRepo.GetFromAllInstanceBy("amount_tendered", 456)
+	cp2 := CardPaymentRepo.GetFromAllInstanceBy("amount_tendered", 456)
 	require.NoError(t, err)
 	require.NotNil(t, cp2)
-	p3, err := PaymentRepo.GetFromAllInstanceBy("amount_tendered", 456)
+	p3 := PaymentRepo.GetFromAllInstanceBy("amount_tendered", 456)
 	require.NoError(t, err)
 	require.NotNil(t, p3)
 

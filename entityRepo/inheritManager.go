@@ -152,21 +152,22 @@ func (p *inheritRepo[T, PT]) Get(goenId int) (PT, error) {
 	return p.getPT(e), nil
 }
 
-func (p *inheritRepo[T, PT]) GetFromAllInstanceBy(field string, value any) (PT, error) {
+func (p *inheritRepo[T, PT]) GetFromAllInstanceBy(field string, value any) PT {
 	e := p.getInterface(new(T))
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true %s", p.getTablesQuery(), field, p.getJoinQuery())
 	err := Db.Get(e, query, value)
 	var nilPT PT
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nilPT, nil
+			return nilPT
 		}
-		return nilPT, err
+		panic(err)
+		return nilPT
 	}
 	//e.setExistent()
 	p.recurAfterFind(e)
 	p.recurAddInQueue(e)
-	return p.getPT(e), nil
+	return p.getPT(e)
 }
 
 func (p *inheritRepo[T, PT]) getTablesQuery() string {
@@ -189,13 +190,14 @@ func (p *inheritRepo[T, PT]) getJoinQuery() string {
 	return joinQuery
 }
 
-func (p *inheritRepo[T, PT]) FindFromAllInstanceBy(field string, value any) ([]PT, error) {
+func (p *inheritRepo[T, PT]) FindFromAllInstanceBy(field string, value any) []PT {
 	var entityArr []*T
 	var interfaceArr []PT
 	query := fmt.Sprintf("select * from %s where %s=? and goen_in_all_instance = true %s", p.getTablesQuery(), field, p.getJoinQuery())
 	err := Db.Get(entityArr, query, value)
 	if err != nil {
-		return nil, err
+		panic(err)
+		return nil
 	}
 	for _, e := range entityArr {
 		ei := p.getInterface(e)
@@ -204,7 +206,7 @@ func (p *inheritRepo[T, PT]) FindFromAllInstanceBy(field string, value any) ([]P
 		p.recurAddInQueue(ei)
 		interfaceArr = append(interfaceArr, p.getPT(ei))
 	}
-	return interfaceArr, nil
+	return interfaceArr
 }
 
 func (p *inheritRepo[T, PT]) FindFromMultiAssTable(assTableName string, ownerId int) ([]PT, error) {
