@@ -23,6 +23,7 @@ type Item interface {
 	SetStockNumber(stockNumber int)
 	SetOrderStatus(status OrderStatus)
 	AddContainedItem(item Item)
+	RemoveContainedItem(item Item)
 	SetBelongedItem(item Item)
 	SetBelongedPayment(payment Payment)
 	GetName() string
@@ -125,6 +126,9 @@ func (p *ItemEntity) SetOrderStatus(status OrderStatus) {
 
 func (p *ItemEntity) AddContainedItem(item Item) {
 	p.AddMultiAssChange(entityRepo.Include, "item_contained_item", itemRepo.GetGoenId(item))
+}
+func (p *ItemEntity) RemoveContainedItem(item Item) {
+	p.AddMultiAssChange(entityRepo.Exclude, "item_contained_item", itemRepo.GetGoenId(item))
 }
 
 func (p *ItemEntity) SetBelongedItem(item Item) {
