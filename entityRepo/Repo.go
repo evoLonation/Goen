@@ -113,7 +113,8 @@ func (p *repo[T, PT]) IsInAllInstance(entity PT) bool {
 	if err != nil {
 		return false
 	}
-	if ret == nil {
+	// must cast to ant,otherwise ret is not comparable
+	if any(ret) == nil {
 		return false
 	}
 	return true
