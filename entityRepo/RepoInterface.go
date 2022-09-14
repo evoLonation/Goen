@@ -13,6 +13,8 @@ type RepoForOther[T any] interface {
 	FindFromAllInstanceBy(member string, value any) []T
 	AddInAllInstance(e T)
 	RemoveFromAllInstance(e T)
+	IsInAllInstance(e T) bool
+	GetAll() []T
 }
 
 type RepoForEntity[PT any] interface {

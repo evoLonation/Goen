@@ -48,12 +48,12 @@ func NewRepo[T any, PT any](tableName string) (*repo[T, PT], error) {
 	return repo, nil
 }
 
-func (p *repo[T, PT]) getInterface(e *T) EntityForRepo {
-	return (any(e)).(EntityForRepo)
+func (p *repo[T, PT]) getInterface(e any) EntityForRepo {
+	return e.(EntityForRepo)
 }
 
-func (p *repo[T, PT]) getPT(ei EntityForRepo) PT {
-	return (any(ei)).(PT)
+func (p *repo[T, PT]) getPT(ei any) PT {
+	return ei.(PT)
 }
 
 func (p *repo[T, PT]) GetGoenId(e PT) int {
@@ -88,6 +88,35 @@ func (p *repo[T, PT]) Get(goenId int) (PT, error) {
 	e.afterFind()
 	p.addInQueue(e)
 	return p.getPT(e), nil
+}
+
+func (p *repo[T, PT]) GetAll() []PT {
+	var entityArr []*T
+	var interfaceArr []PT
+	query := fmt.Sprintf("select * from %s where goen_in_all_instance = true", p.tableName)
+	err := Db.Select(&entityArr, query)
+	if err != nil {
+		panic(err)
+		return nil
+	}
+	for _, e := range entityArr {
+		ei := p.getInterface(e)
+		ei.afterFind()
+		p.addInQueue(ei)
+		interfaceArr = append(interfaceArr, p.getPT(ei))
+	}
+	return interfaceArr
+}
+
+func (p *repo[T, PT]) IsInAllInstance(entity PT) bool {
+	ret, err := p.Get(p.getInterface(entity).GetGoenId())
+	if err != nil {
+		return false
+	}
+	if ret == nil {
+		return false
+	}
+	return true
 }
 
 func (p *repo[T, PT]) GetFromAllInstanceBy(member string, value any) PT {

@@ -1,4 +1,4 @@
-package entity
+package entityTest
 
 import (
 	"Cocome/entityRepo"
