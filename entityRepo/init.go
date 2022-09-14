@@ -10,7 +10,7 @@ var Db *sqlx.DB
 
 func init() {
 	var err error
-	Db, err = sqlx.Open("mysql", "root:2002116yy@tcp(127.0.0.1:3306)/test?parseTime=true")
+	Db, err = sqlx.Open("mysql", "root:2002116yy@tcp(127.0.0.1:3306)/entity_manager2?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	}
